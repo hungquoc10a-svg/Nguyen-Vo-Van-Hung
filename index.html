@@ -122,6 +122,7 @@ if (!window.VOCAB_DATA || !Array.isArray(window.VOCAB_DATA)) {
   console.warn("VOCAB_DATA was not loaded. Using small safety fallback. Upload the data folder for full 600+ vocabulary.");
 }
 
+const VOCAB_DATA = window.VOCAB_DATA || [];
 const APP_KEY="pi_coach_v2_state";
 const state=JSON.parse(localStorage.getItem(APP_KEY)||"null")||{view:"dashboard",idx:0,learned:{},weak:{},errors:[],endpoint:"/api/ai-coach",learnerName:"Hùng",targetRole:"Production Shift Leader / Line Manager",profile:"Shift Leader, 3 production lines, 8 Team Leaders, around 120 operators, MES, Power BI, delivery, productivity, ramp-up, quality, safety.",aiStatus:"unknown"};
 const views=[["dashboard","🏠 Dashboard"],["vocab","📚 Vocabulary"],["learn","🎧 Học từ"],["speaking","🎙 Speaking Room"],["interview","🧑‍💼 Interview"],["roleplay","🏭 Role-play"],["errors","🧾 Error Notebook"],["settings","⚙️ Settings"]];
@@ -134,7 +135,8 @@ function $(id){return document.getElementById(id)}
 function show(v){state.view=v;save();document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));$(v).classList.add("active");document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.view===v));}
 function init(){document.getElementById("tabs").innerHTML=views.map(v=>`<button class="tab" data-view="${v[0]}" onclick="show('${v[0]}')">${v[1]}</button>`).join("");renderAll();show(state.view)}
 function filteredVocab(){let a=window.VOCAB_DATA||[];let q=$("vSearch")?.value?.toLowerCase()||"";let cat=$("vCat")?.value||"All";let topic=$("vTopic")?.value||"All";let type=$("vType")?.value||"All";let status=$("vStatus")?.value||"All";return a.filter(x=>(cat==="All"||x.mainCategory===cat)&&(topic==="All"||x.topic===topic)&&(type==="All"||x.type===type)&&(!q||JSON.stringify(x).toLowerCase().includes(q))&&(status==="All"||(status==="Weak"?state.weak[x.id]:status==="Learned"?state.learned[x.id]:!state.learned[x.id])))}
-function renderAll(){renderDashboard();renderVocab();renderLearn();renderSpeaking();renderInterview();renderRoleplay();renderErrors();renderSettings();}
+function safeRender(name,fn){try{fn()}catch(e){console.error("Render error in "+name,e);let el=$(name);if(el)el.innerHTML=`<div class="card"><h2>Lỗi tải mục ${safe(name)}</h2><p class="small">${safe(e.message||e)}</p><button class="btn blue" onclick="location.reload()">Tải lại</button></div>`}}
+function renderAll(){safeRender("dashboard",renderDashboard);safeRender("vocab",renderVocab);safeRender("learn",renderLearn);safeRender("speaking",renderSpeaking);safeRender("interview",renderInterview);safeRender("roleplay",renderRoleplay);safeRender("errors",renderErrors);safeRender("settings",renderSettings);}
 function renderDashboard(){let total=VOCAB_DATA.length,learned=Object.keys(state.learned).length,weak=Object.keys(state.weak).length; $("dashboard").innerHTML=`<div class="grid grid3"><div class="card stat"><span class="small">Vocabulary bank</span><b>${total}</b><p>TOEIC + Manufacturing + Interview phrases.</p></div><div class="card stat"><span class="small">Learned</span><b>${learned}</b><div class="progress"><div class="bar" style="width:${Math.min(100,learned/total*100)}%"></div></div></div><div class="card stat"><span class="small">Weak words/sentences</span><b>${weak+state.errors.length}</b><p>Cần ôn lại trước khi học mới.</p></div></div><div class="card" style="margin-top:16px"><h2>Lộ trình học hôm nay</h2><div class="grid grid3"><div class="fb"><b>1. Vocabulary</b><br>Học 30–40 từ theo bộ lọc: TOEIC/Manufacturing/Interview.</div><div class="fb"><b>2. Speaking Room</b><br>Ghi âm 60 giây, xem waveform, dừng rồi gửi AI.</div><div class="fb"><b>3. Error Notebook</b><br>Luyện lại câu yếu và cụm yếu.</div></div></div>`}
 function renderVocab(){let cats=["All",...new Set(VOCAB_DATA.map(x=>x.mainCategory))],topics=["All",...new Set(VOCAB_DATA.map(x=>x.topic))],types=["All",...new Set(VOCAB_DATA.map(x=>x.type))]; $("vocab").innerHTML=`<div class="card"><h2>Vocabulary Bank</h2><div class="toolbar"><select id="vCat" onchange="updateVocab()">${cats.map(x=>`<option>${x}</option>`).join("")}</select><select id="vTopic" onchange="updateVocab()">${topics.map(x=>`<option>${x}</option>`).join("")}</select><select id="vType" onchange="updateVocab()">${types.map(x=>`<option>${x}</option>`).join("")}</select><select id="vStatus" onchange="updateVocab()"><option>All</option><option>New</option><option>Learned</option><option>Weak</option></select><input id="vSearch" placeholder="Search word/topic..." oninput="updateVocab()"><button class="btn blue" onclick="dailyWords()">Daily 40</button></div><div class="grid grid2"><div class="card word-card" id="wordCard"></div><div class="card"><h3>Danh sách</h3><div id="vocabList" style="max-height:520px;overflow:auto"></div></div></div></div>`; updateVocab()}
 function updateVocab(){let arr=filteredVocab(); if(!arr.length) arr=VOCAB_DATA; currentVocab=arr[state.idx%arr.length]; $("wordCard").innerHTML=wordHTML(currentVocab); $("vocabList").innerHTML=`<table class="table"><thead><tr><th>Term</th><th>Topic</th><th></th></tr></thead><tbody>${arr.slice(0,160).map((x,i)=>`<tr><td><b>${safe(x.term)}</b><br><span class="small">${safe(x.vietnameseMeaning)}</span></td><td><span class="pill">${safe(x.mainCategory)}</span><span class="pill green">${safe(x.topic)}</span></td><td><button class="btn light" onclick="pickVocab('${x.id}')">Open</button></td></tr>`).join("")}</tbody></table>`}
@@ -177,6 +179,28 @@ async function testAI(){
     setAIStatus("offline");
   }
 }
+
+function setAIStatus(status, detail=""){
+  state.aiStatus=status;
+  save();
+  const labels={online:"AI online",offline:"AI offline / lỗi kết nối",testing:"Đang test AI...",unknown:"AI chưa test"};
+  document.querySelectorAll(".ai-status-badge .dot").forEach(d=>{
+    d.className="dot";
+    d.style.background="";
+    if(status==="online") d.classList.add("on");
+    if(status==="offline") d.style.background="#dc2626";
+    if(status==="testing") d.style.background="#f59e0b";
+  });
+  document.querySelectorAll(".ai-status-badge span:last-child").forEach(t=>t.textContent=labels[status]||labels.unknown);
+  if(detail && $("aiTest")) $("aiTest").innerHTML=detail;
+}
+function getAIStatusBadge(){
+  const label=state.aiStatus==="online"?"AI online":state.aiStatus==="offline"?"AI offline / lỗi kết nối":state.aiStatus==="testing"?"Đang test AI...":"AI chưa test";
+  const dotClass=state.aiStatus==="online"?"dot on":"dot";
+  const style=state.aiStatus==="offline"?' style="background:#dc2626"':state.aiStatus==="testing"?' style="background:#f59e0b"':"";
+  return `<span class="status ai-status-badge"><span class="${dotClass}"${style}></span><span>${label}</span></span>`;
+}
+
 function speakText(t){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.9;speechSynthesis.speak(u)}
 let rec={stream:null,ctx:null,analyser:null,raf:null,start:0,timer:null,recognition:null,finalText:"",target:""};
 function openRecorder(prompt){rec.target=prompt;$("recPrompt").textContent=prompt;$("recTranscript").value="";$("recTime").textContent="00:00";$("recStatus").textContent="Chưa ghi âm";$("recDot").className="dot";$("recModal").classList.add("show");drawEmptyWave()}

@@ -63,3 +63,19 @@ V2.5 update
 - Adds a safety fallback if data/vocabulary.js is missing or not uploaded.
 - Fixes blank page/content issue when only index.html is tested locally without the data folder.
 - Full 600+ vocabulary still requires uploading the /data folder.
+
+
+V2.6 full fix
+===========
+- Fixes blank Speaking/Interview/Role-play caused by VOCAB_DATA not being available as an unqualified global variable.
+- Adds explicit const VOCAB_DATA = window.VOCAB_DATA || [] binding.
+- Adds safeRender so one section error cannot make all later sections blank.
+- Keep uploading full source including /data folder for the complete 600+ vocabulary bank.
+
+
+V2.7 final fixed
+===========
+- Restores AI status helper functions missing in V2.6.
+- Fixes blank Speaking Room caused by getAIStatusBadge not defined.
+- Keeps VOCAB_DATA binding fix and safeRender protection.
+- Use this full package for upload.
