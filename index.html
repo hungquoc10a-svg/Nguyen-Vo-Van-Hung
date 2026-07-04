@@ -81,7 +81,7 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{max-width:1
 
 <script>
 const APP_KEY="pi_coach_v2_state";
-const state=JSON.parse(localStorage.getItem(APP_KEY)||"null")||{view:"dashboard",idx:0,learned:{},weak:{},errors:[],endpoint:"/api/ai-coach",learnerName:"Hùng",targetRole:"Production Shift Leader / Line Manager",profile:"Shift Leader, 3 production lines, 8 Team Leaders, around 120 operators, MES, Power BI, delivery, productivity, ramp-up, quality, safety."};
+const state=JSON.parse(localStorage.getItem(APP_KEY)||"null")||{view:"dashboard",idx:0,learned:{},weak:{},errors:[],endpoint:"/api/ai-coach",learnerName:"Hùng",targetRole:"Production Shift Leader / Line Manager",profile:"Shift Leader, 3 production lines, 8 Team Leaders, around 120 operators, MES, Power BI, delivery, productivity, ramp-up, quality, safety.",aiStatus:"unknown"};
 const views=[["dashboard","🏠 Dashboard"],["vocab","📚 Vocabulary"],["learn","🎧 Học từ"],["speaking","🎙 Speaking Room"],["interview","🧑‍💼 Interview"],["roleplay","🏭 Role-play"],["errors","🧾 Error Notebook"],["settings","⚙️ Settings"]];
 const scenarios=["There is an urgent order that must ship tomorrow. Can your shift support it?","Line 2 is behind target by 15%. What should you do?","QA found repeated defects in the last batch. What is your first action?","Several operators are absent today. How will you balance manpower?","A machine stopped during peak output time. What will you do?","A new model ramp-up is unstable. How will you support it?","An operator did not follow PPE requirements. What will you do?"];
 let currentPrompt=scenarios[0], currentMode="speaking", currentVocab=null;
@@ -113,7 +113,7 @@ function showLearnAnswer(id){let x=VOCAB_DATA.find(v=>v.id===id);$("learnResult"
 function markLearnedOnly(id){state.learned[id]=Date.now();save();updateLearn()}
 function nextLearn(){let arr=learnFiltered();state.learnIdx=((state.learnIdx||0)+1)%Math.max(arr.length,1);save();updateLearn()}
 
-function renderSpeaking(){currentPrompt=scenarios[0];$("speaking").innerHTML=`<div class="card"><h2>Virtual Speaking Room</h2><div class="toolbar"><button class="btn light" onclick="newScenario()">↻ Đổi tình huống</button><span class="status"><span class="dot on"></span>AI online if key is valid</span></div><div class="chat" id="sChat"><div class="msg ai">${safe(currentPrompt)}</div></div><div class="toolbar"><button class="btn" onclick="openRecorder(currentPrompt);currentMode='speaking'">🎙 Trả lời bằng giọng nói</button><button class="btn light" onclick="manualAnswer('speaking')">⌨ Nhập</button></div><textarea id="sInput" placeholder="Hoặc nhập câu trả lời ở đây..."></textarea><button class="btn blue" onclick="sendManual('speaking')">Gửi & phân tích</button><div id="sFeedback" style="margin-top:14px"></div></div>`}
+function renderSpeaking(){currentPrompt=scenarios[0];$("speaking").innerHTML=`<div class="card"><h2>Virtual Speaking Room</h2><div class="toolbar"><button class="btn light" onclick="newScenario()">↻ Đổi tình huống</button>${getAIStatusBadge()}</div><div class="chat" id="sChat"><div class="msg ai">${safe(currentPrompt)}</div></div><div class="toolbar"><button class="btn" onclick="openRecorder(currentPrompt);currentMode='speaking'">🎙 Trả lời bằng giọng nói</button><button class="btn light" onclick="manualAnswer('speaking')">⌨ Nhập</button></div><textarea id="sInput" placeholder="Hoặc nhập câu trả lời ở đây..."></textarea><button class="btn blue" onclick="sendManual('speaking')">Gửi & phân tích</button><div id="sFeedback" style="margin-top:14px"></div></div>`}
 function newScenario(){currentPrompt=scenarios[Math.floor(Math.random()*scenarios.length)];$("sChat").innerHTML=`<div class="msg ai">${safe(currentPrompt)}</div>`}
 function renderInterview(){let qs=["Tell me about yourself.","How do you control daily output?","How do you handle urgent orders?","How do you balance manpower across lines?","What do you do when defect rate increases?","How do you ensure safety compliance?","Tell me about your ramp-up experience."];$("interview").innerHTML=`<div class="card"><h2>Interview Practice</h2><div class="grid grid3">${qs.map(q=>`<div class="fb"><b>${safe(q)}</b><br><button class="btn blue" onclick="currentPrompt='${q.replace(/'/g,"\\'")}';currentMode='interview';openRecorder(currentPrompt)">🎙 Answer</button></div>`).join("")}</div><div id="iFeedback" style="margin-top:14px"></div></div>`}
 function renderRoleplay(){let roles=["Production Manager","QA Staff","Maintenance Engineer","Team Leader","Warehouse Staff","EHS Officer"];$("roleplay").innerHTML=`<div class="card"><h2>Factory Role-play</h2><div class="grid grid3">${roles.map(r=>`<div class="fb"><b>${r}</b><br>${safe(scenarios[Math.floor(Math.random()*scenarios.length)])}<br><button class="btn blue" onclick="currentMode='roleplay';currentPrompt='${r}: ${scenarios[0]}';openRecorder(currentPrompt)">Start</button></div>`).join("")}</div><div id="rFeedback" style="margin-top:14px"></div></div>`}
@@ -122,7 +122,19 @@ function renderSettings(){ $("settings").innerHTML=`<div class="card"><h2>Settin
 function openSettings(){ $("endpoint").value=state.endpoint;$("learnerName").value=state.learnerName;$("targetRole").value=state.targetRole;$("learnerProfile").value=state.profile;$("settingsModal").classList.add("show")}
 function closeSettings(){ $("settingsModal").classList.remove("show") }
 function saveSettings(){state.endpoint=$("endpoint").value||"/api/ai-coach";state.learnerName=$("learnerName").value;state.targetRole=$("targetRole").value;state.profile=$("learnerProfile").value;save();$("aiTest").innerHTML="Đã lưu."}
-async function testAI(){let res=await callAI({mode:"test",question:"Test connection",answer:"OK",role:state.targetRole,profile:state.profile});$("aiTest").innerHTML=res.ok?`<span class="pill green">AI hoạt động</span><pre>${safe(res.text).slice(0,900)}</pre>`:`<span class="pill red">Chưa kết nối</span><pre>${safe(res.text)}</pre>`}
+async function testAI(){
+  saveSettings();
+  $("aiTest").innerHTML="Đang test AI...";
+  setAIStatus("testing");
+  let r=await callAI({mode:"test",question:"Return a short JSON feedback for the word OK.",answer:"test",role:state.targetRole,profile:state.profile});
+  if(r.ok){
+    $("aiTest").innerHTML='<span class="pill green">AI hoạt động</span><br>'+safe(r.text).slice(0,900);
+    setAIStatus("online");
+  }else{
+    $("aiTest").innerHTML='<span class="pill red">Chưa kết nối</span><br>'+safe(r.text).slice(0,900);
+    setAIStatus("offline");
+  }
+}
 function speakText(t){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.9;speechSynthesis.speak(u)}
 let rec={stream:null,ctx:null,analyser:null,raf:null,start:0,timer:null,recognition:null,finalText:"",target:""};
 function openRecorder(prompt){rec.target=prompt;$("recPrompt").textContent=prompt;$("recTranscript").value="";$("recTime").textContent="00:00";$("recStatus").textContent="Chưa ghi âm";$("recDot").className="dot";$("recModal").classList.add("show");drawEmptyWave()}
@@ -136,7 +148,22 @@ async function sendRecording(){let answer=$("recTranscript").value.trim(); if(!a
 async function sendManual(mode){let ans= mode==="speaking"?$("sInput").value.trim():"";if(!ans)return alert("Nhập câu trả lời trước.");let fb=await analyzeAnswer(mode,currentPrompt,ans);$("sFeedback").innerHTML=renderFeedback(fb)}
 function manualAnswer(mode){$("sInput").focus()}
 async function analyzeAnswer(mode,question,answer){let res=await callAI({mode,question,answer,role:state.targetRole,profile:state.profile});let data;if(res.ok){try{data=JSON.parse(res.text)}catch(e){data={correctSentence:"",professionalAnswer:res.text,mistakes:["AI returned non-JSON."]}}}else{data=fallback(answer)}state.errors.unshift({date:new Date().toLocaleString("vi-VN"),mode,question,answer,...data});save();renderErrors();return data}
-async function callAI(payload){try{let r=await fetch(state.endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});let d=await r.json();return r.ok?{ok:true,text:d.text||JSON.stringify(d)}:{ok:false,text:JSON.stringify(d)}}catch(e){return{ok:false,text:e.message}}}
+async function callAI(payload){
+  try{
+    setAIStatus("testing");
+    let r=await fetch(state.endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    let d=await r.json();
+    if(r.ok){
+      setAIStatus("online");
+      return {ok:true,text:d.text||JSON.stringify(d),raw:d};
+    }
+    setAIStatus("offline","Lỗi AI: "+safe(JSON.stringify(d).slice(0,800)));
+    return {ok:false,text:JSON.stringify(d),raw:d};
+  }catch(e){
+    setAIStatus("offline","Lỗi kết nối: "+safe(e.message));
+    return {ok:false,text:e.message};
+  }
+}
 function fallback(a){return{correctSentence:a,professionalAnswer:"AI offline. Use a clear answer with action, reason, and result.",mistakes:["AI chưa kết nối."],pronunciationNotes:["Kiểm tra API."],usefulPhrases:["hourly output","line capacity","delivery risk"],followUpQuestion:"What is your next action?",scores:{grammar:50,vocabulary:50,clarity:50,interviewQuality:50},summaryVietnamese:"Fallback mode."}}
 
 function followUpId(question){
