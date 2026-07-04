@@ -1,504 +1,181 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Production Interview AI Coach</title>
-  <style>
-    :root{
-      --bg:#f6f7fb; --card:#ffffff; --ink:#061633; --muted:#64748b; --line:#dbe1ea;
-      --soft:#f8fafc; --soft2:#eef4ff; --violet:#d9c2ff; --primary:#0f172a; --blue:#2563eb;
-      --green:#0f766e; --red:#dc2626; --amber:#d97706; --shadow:0 10px 28px rgba(15,23,42,.08);
-      --radius:14px;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;}
-    button,input,select,textarea{font:inherit}
-    button{cursor:pointer}
-    .wrap{max-width:1234px;margin:0 auto;padding:34px 22px 70px}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}
-    .back{display:flex;gap:10px;align-items:center;color:#0f172a;font-weight:700}
-    .title{font-size:36px;letter-spacing:-.04em;margin:0 0 24px}
-    .btn{border:0;border-radius:12px;padding:10px 16px;background:#0f172a;color:white;font-weight:700;display:inline-flex;gap:9px;align-items:center;justify-content:center}
-    .btn.light{background:white;color:#0f172a;border:1px solid var(--line);box-shadow:var(--shadow)}
-    .btn.ghost{background:transparent;color:#0f172a;border:1px solid var(--line)}
-    .btn.blue{background:#2563eb}
-    .btn.green{background:#0f766e}
-    .btn.red{background:#dc2626}
-    .btn:disabled{opacity:.5;cursor:not-allowed}
-    .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0 24px}
-    .tab{background:white;border:1px solid #ede7ff;border-radius:12px;padding:15px 17px;box-shadow:0 8px 18px rgba(110,58,210,.11);font-weight:750;display:flex;gap:10px;align-items:center}
-    .tab.active{outline:2px solid #dec7ff;background:#fff}
-    .main-grid{display:grid;grid-template-columns:1fr;gap:22px}
-    .study-card{max-width:598px;min-height:398px;margin:0 auto;background:white;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);position:relative;padding:30px;display:grid;place-items:center;text-align:center;overflow:hidden}
-    .study-card:after{content:"";position:absolute;right:-10px;top:-12px;width:120px;height:48px;background:radial-gradient(circle at 12px 12px,#fcd34d 0 4px,transparent 5px),radial-gradient(circle at 42px 22px,#f9a8d4 0 4px,transparent 5px),radial-gradient(circle at 72px 17px,#99f6e4 0 4px,transparent 5px),radial-gradient(circle at 98px 30px,#fecaca 0 4px,transparent 5px);transform:rotate(22deg);opacity:.9}
-    .card-setting{position:absolute;top:26px;left:26px;color:#475569}
-    .card-word{font-size:30px;font-weight:850;letter-spacing:-.02em}
-    .ipa{color:#64748b;margin-top:12px}
-    .meaning{font-size:21px;margin-top:18px;color:#0f172a}
-    .sample{font-size:15px;line-height:1.7;color:#334155;margin-top:20px;max-width:480px}
-    .card-actions{position:absolute;right:28px;bottom:18px;display:flex;gap:12px;align-items:center}
-    .round{width:41px;height:41px;border-radius:12px;border:0;display:grid;place-items:center;background:#0f172a;color:white;font-size:18px}
-    .round.light{background:white;color:#0f172a;border:1px solid var(--line)}
-    .switch{width:40px;height:22px;border-radius:99px;background:#111;position:relative;display:inline-block;vertical-align:middle}
-    .switch:before{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:white;right:3px;top:3px}
-    .under-card{max-width:598px;margin:14px auto 0;display:flex;justify-content:space-between;align-items:center;gap:16px}
-    .navbtn{width:52px;height:40px;border-radius:12px;border:0;background:white;box-shadow:var(--shadow);font-size:22px}
-    .small{font-size:13px;color:var(--muted);line-height:1.55}
-    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#eef2f7;padding:3px 7px;border-radius:7px;border:1px solid #dbe1ea}
-    .panel{background:white;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:24px;margin-top:20px}
-    .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:14px}
-    select,input,textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:white;color:#0f172a;outline:none}
-    textarea{min-height:104px;resize:vertical}
-    .modal{position:fixed;inset:0;background:rgba(15,23,42,.42);display:none;align-items:flex-start;justify-content:flex-end;z-index:30}
-    .modal.show{display:flex}
-    .sheet{width:min(496px,100%);min-height:100vh;background:#f8fafc;border-radius:24px 0 0 24px;padding:26px 14px;box-shadow:-18px 0 40px rgba(15,23,42,.16)}
-    .sheet-card{background:#eef1f6;border-radius:12px;padding:22px 16px;margin:10px 0}
-    .close{float:right;border:0;background:transparent;font-size:24px;color:#64748b}
-    .rec-line{height:64px;border-radius:12px;background:#e9edf3;margin:16px 0;display:flex;align-items:center;padding:0 16px;color:#3b82f6;border-bottom:2px dashed #3b82f6}
-    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .wide-card{background:white;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:24px}
-    .quiz-title{font-size:31px;font-weight:850;letter-spacing:-.03em;line-height:1.25;text-decoration:underline dotted 3px;text-underline-offset:5px;margin:10px 0 28px}
-    .hint-row{display:flex;gap:28px;justify-content:center;margin:26px 0;color:#334155;font-size:14px}
-    .speakbar{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-top:20px}
-    .read-title{text-align:center;font-size:24px;font-weight:850;margin-bottom:24px}
-    .paragraph{font-size:17px;line-height:2.05;background:white;border:1px solid var(--line);border-radius:14px;padding:28px;margin-bottom:16px}
-    .blank{display:inline-flex;flex-direction:column;align-items:center;gap:3px;margin:0 8px;vertical-align:middle}
-    .blank input{width:122px;border:0;border-bottom:2px solid #cbd5e1;border-radius:0;text-align:center;padding:3px 4px;background:transparent}
-    .blank small{font-size:11px;color:#64748b;line-height:1.2}
-    .learn-box{max-width:848px;margin:20px auto;background:white;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:68px 24px 24px}
-    .learn-word{font-size:31px;font-weight:850;text-decoration:underline dotted 3px;text-underline-offset:4px}
-    .learn-input{font-size:23px;text-align:center;background:#f1f5f9;border:0;margin-top:24px}
-    .result{margin-top:16px;padding:14px;border-radius:13px;background:#f8fafc;border:1px solid var(--line);line-height:1.6}
-    .tag{display:inline-block;padding:5px 9px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:700;margin:2px}
-    .tag.green{background:#ecfdf5;color:#047857}
-    .tag.red{background:#fef2f2;color:#b91c1c}
-    .tag.amber{background:#fff7ed;color:#c2410c}
-    .chat{height:390px;overflow:auto;background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
-    .msg{max-width:86%;padding:12px 14px;border-radius:16px;background:white;border:1px solid var(--line);line-height:1.55;white-space:pre-wrap}
-    .msg.ai{align-self:flex-start;border-top-left-radius:4px}
-    .msg.you{align-self:flex-end;background:#dbeafe;border-color:#bfdbfe;border-top-right-radius:4px}
-    .cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    .status{display:flex;align-items:center;gap:8px;font-size:13px;color:#64748b}
-    .dot{width:9px;height:9px;border-radius:50%;background:#d97706}
-    .dot.ok{background:#16a34a}.dot.bad{background:#dc2626}
-    .hidden{display:none!important}
-    @media(max-width:860px){
-      .title{font-size:28px}.tabs{grid-template-columns:1fr}.speakbar,.two,.cards-grid{grid-template-columns:1fr}
-      .wrap{padding:22px 14px 50px}.sheet{border-radius:20px 20px 0 0}.modal{align-items:flex-end}.under-card{flex-wrap:wrap;justify-content:center}
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Production Interview AI Coach V2</title>
+<script src="./data/vocabulary.js"></script>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#071833;--muted:#64748b;--line:#d8e0ea;--blue:#2563eb;--dark:#0f172a;--green:#16a34a;--red:#dc2626;--amber:#d97706;--soft:#eef4ff;--shadow:0 12px 32px rgba(15,23,42,.08);--radius:18px}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#eef4ff 0,#f8fafc 300px);font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;color:var(--ink)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.app{max-width:1220px;margin:auto;padding:24px 18px 64px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+.brand h1{margin:0;font-size:30px;letter-spacing:-.04em}.brand p{margin:6px 0 0;color:var(--muted)}.actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:10px 15px;background:var(--dark);color:white;font-weight:750;display:inline-flex;align-items:center;justify-content:center;gap:8px}.btn.light{background:white;color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow)}.btn.blue{background:var(--blue)}.btn.green{background:var(--green)}.btn.red{background:var(--red)}.btn:disabled{opacity:.55;cursor:not-allowed}
+.tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin:22px 0}.tab{background:white;border:1px solid var(--line);border-radius:14px;padding:15px 14px;box-shadow:var(--shadow);font-weight:850;text-align:left}.tab.active{outline:2px solid #c4b5fd;background:#fff}
+.grid{display:grid;gap:16px}.grid2{grid-template-columns:1.25fr .75fr}.grid3{grid-template-columns:repeat(3,1fr)}.card{background:white;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}.card h2,.card h3{margin:0 0 14px}.small{font-size:13px;color:var(--muted);line-height:1.5}.pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;background:#eff6ff;color:#1d4ed8;border-radius:999px;font-size:12px;font-weight:800;margin:2px}.pill.green{background:#ecfdf5;color:#047857}.pill.red{background:#fef2f2;color:#b91c1c}.pill.amber{background:#fff7ed;color:#c2410c}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}.field,select,textarea,input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;background:white;outline:none}textarea{min-height:100px;resize:vertical}.toolbar select,.toolbar input{max-width:220px}
+.view{display:none}.view.active{display:block}.stat{padding:18px;border-radius:16px;background:#f8fafc;border:1px solid var(--line)}.stat b{font-size:28px}.progress{height:10px;background:#e5e7eb;border-radius:99px;overflow:hidden}.bar{height:100%;background:linear-gradient(90deg,#2563eb,#14b8a6)}
+.word-card{min-height:430px;display:grid;place-items:center;text-align:center;background:linear-gradient(180deg,#fff,#f8fafc);position:relative}.word-term{font-size:36px;font-weight:900;letter-spacing:-.03em}.ipa{color:#64748b;margin:8px 0}.meaning{font-size:22px;margin:12px 0}.details{line-height:1.65;text-align:left}.detail-row{border-top:1px solid var(--line);padding:10px 0}.chat{height:430px;overflow:auto;background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}.msg{max-width:86%;padding:12px 14px;border-radius:16px;background:white;border:1px solid var(--line);line-height:1.55;white-space:pre-wrap}.msg.ai{align-self:flex-start;border-top-left-radius:4px}.msg.you{align-self:flex-end;background:#dbeafe;border-color:#bfdbfe;border-top-right-radius:4px}
+.feedback-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.fb{background:#f8fafc;border:1px solid var(--line);border-radius:14px;padding:14px;line-height:1.55}.fb.full{grid-column:1/-1}.score-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.score{background:white;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}.score b{font-size:24px}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.46);display:none;align-items:center;justify-content:center;z-index:20;padding:14px}.modal.show{display:flex}.sheet{width:min(600px,100%);background:#f8fafc;border-radius:22px;padding:18px;box-shadow:0 30px 80px rgba(0,0,0,.25)}.sheet-card{background:#eef2f7;border-radius:16px;padding:18px;margin-bottom:12px}.close{float:right;border:0;background:transparent;font-size:24px}.timer{font-size:28px;font-weight:900;text-align:center}.wave{height:120px;background:#e9edf3;border-radius:16px;width:100%;display:block}.rec-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.status{display:flex;align-items:center;gap:8px;color:#64748b;font-size:13px}.dot{width:9px;height:9px;border-radius:50%;background:#94a3b8}.dot.on{background:#16a34a}.dot.bad{background:#dc2626}
+.table{width:100%;border-collapse:separate;border-spacing:0 8px}.table th{text-align:left;color:#64748b;font-size:12px;text-transform:uppercase;padding:0 10px}.table td{background:white;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px}.table td:first-child{border-left:1px solid var(--line);border-radius:12px 0 0 12px}.table td:last-child{border-right:1px solid var(--line);border-radius:0 12px 12px 0}
+
+.learn-layout{display:grid;grid-template-columns:1fr .85fr;gap:16px}.learn-main{min-height:470px;display:grid;align-items:center}.learn-term{font-size:42px;font-weight:950;letter-spacing:-.04em;text-decoration:underline dotted 4px;text-underline-offset:6px}.learn-input{font-size:22px;text-align:center;background:#f1f5f9}.mini-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.topic-list{max-height:520px;overflow:auto}.topic-chip{display:inline-flex;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:#fff;margin:3px;font-weight:800;font-size:12px;cursor:pointer}.topic-chip.active{background:#dbeafe;color:#1d4ed8;border-color:#93c5fd}
+@media(max-width:900px){.learn-layout{grid-template-columns:1fr}.mini-actions{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.tabs{grid-template-columns:1fr 1fr}.grid2,.grid3,.feedback-grid,.score-grid{grid-template-columns:1fr}.toolbar select,.toolbar input{max-width:none}.brand h1{font-size:24px}}
+</style>
 </head>
 <body>
-<div class="wrap">
+<div class="app">
   <div class="top">
-    <div class="back">← <span>Quay lại</span></div>
-    <div class="toolbar">
-      <button class="btn light" onclick="openSettings()">⚙️ Cài đặt AI</button>
-      <button class="btn light" onclick="exportData()">↗ Xuất lỗi</button>
-    </div>
+    <div class="brand"><h1>Production Interview AI Coach V2 🌐</h1><p>Từ vựng 600+ · phòng giao tiếp ảo · ghi âm 60s · AI đánh giá ngắn gọn</p></div>
+    <div class="actions"><button class="btn light" onclick="openSettings()">⚙️ Cài đặt AI</button><button class="btn light" onclick="exportErrors()">↗ Xuất lỗi</button></div>
   </div>
-
-  <h1 class="title" id="appTitle">Production Interview Vocabulary 🌐</h1>
-
   <div class="tabs" id="tabs"></div>
 
-  <section id="view-home"></section>
-  <section id="view-speaking" class="hidden"></section>
-  <section id="view-conversation" class="hidden"></section>
-  <section id="view-grammar" class="hidden"></section>
-  <section id="view-reading" class="hidden"></section>
-  <section id="view-learn" class="hidden"></section>
-  <section id="view-test" class="hidden"></section>
-  <section id="view-dictation" class="hidden"></section>
+  <section id="dashboard" class="view"></section>
+  <section id="vocab" class="view"></section>
+  <section id="learn" class="view"></section>
+  <section id="speaking" class="view"></section>
+  <section id="interview" class="view"></section>
+  <section id="roleplay" class="view"></section>
+  <section id="errors" class="view"></section>
+  <section id="settings" class="view"></section>
 </div>
 
-<div class="modal" id="recordModal">
+<div class="modal" id="recModal">
   <div class="sheet">
-    <button class="close" onclick="closeRecord()">×</button>
+    <button class="close" onclick="closeRecorder()">×</button>
     <div class="sheet-card">
-      <div class="small">Đọc văn bản này:</div>
-      <h3 id="recordTarget">abide by</h3>
-      <button class="round light" onclick="speak($('#recordTarget').textContent)">🔊</button>
+      <div class="small">Đọc/trả lời câu này:</div>
+      <h3 id="recPrompt">Prompt</h3>
+      <button class="btn light" onclick="speakText(document.getElementById('recPrompt').textContent)">🔊 Nghe</button>
     </div>
-    <div class="rec-line" id="recordLine">---------------------------------------------</div>
-    <div class="two">
-      <button class="btn light" onclick="closeRecord()">Hủy</button>
-      <button class="btn" id="sendRecordBtn" onclick="startRecord()">↑ Gửi</button>
+    <div class="sheet-card">
+      <div class="timer"><span id="recTime">00:00</span> / 01:00</div>
+      <canvas id="wave" class="wave"></canvas>
+      <div class="status" style="margin-top:10px"><span class="dot" id="recDot"></span><span id="recStatus">Chưa ghi âm</span></div>
     </div>
-    <div class="result" id="recordResult">Bấm “Gửi” rồi nói. Nếu trình duyệt hỏi quyền micro, hãy Allow.</div>
+    <textarea id="recTranscript" placeholder="Transcript sẽ hiện ở đây. Bạn có thể sửa lại trước khi gửi AI."></textarea>
+    <div class="rec-actions" style="margin-top:12px">
+      <button class="btn green" id="startRecBtn" onclick="startRecording()">🎙 Bắt đầu</button>
+      <button class="btn red" id="stopRecBtn" onclick="stopRecording()" disabled>⏹ Dừng</button>
+      <button class="btn blue" onclick="sendRecording()">Gửi AI</button>
+    </div>
   </div>
 </div>
 
 <div class="modal" id="settingsModal">
   <div class="sheet">
     <button class="close" onclick="closeSettings()">×</button>
-    <div class="sheet-card">
-      <h3>Cài đặt AI Online</h3>
-      <div class="small">Không nhập API key vào frontend. Khi deploy Netlify/Vercel, đặt biến môi trường <b>OPENAI_API_KEY</b> ở server.</div>
-      <br>
-      <label class="small">AI endpoint</label>
-      <input id="endpointInput" value="/api/ai-coach" />
-      <br><br>
-      <label class="small">Tên người học</label>
-      <input id="nameInput" placeholder="VD: Kiet" />
-      <br><br>
-      <label class="small">Target role</label>
-      <input id="roleInput" value="Production Shift Leader / Line Manager" />
-      <br><br>
-      <label class="small">Kinh nghiệm thật của bạn</label>
-      <textarea id="profileInput">Shift Leader, 3 production lines, 8 Team Leaders, around 120 operators, MES, Power BI, delivery, productivity, ramp-up, quality, safety.</textarea>
-      <div class="toolbar" style="margin-top:12px">
-        <button class="btn" onclick="saveSettings()">Lưu</button>
-        <button class="btn light" onclick="testAI()">Test AI</button>
-      </div>
-      <div id="aiStatus" class="result">Chưa test.</div>
-    </div>
+    <h2>Cài đặt AI Online</h2>
+    <div class="small">Backend dùng biến <b>OPENROUTER_API_KEY</b> trên Vercel. Không dán key vào frontend.</div><br>
+    <label>AI endpoint</label><input id="endpoint" value="/api/ai-coach"/><br><br>
+    <label>Tên người học</label><input id="learnerName"/><br><br>
+    <label>Target role</label><input id="targetRole"/><br><br>
+    <label>Kinh nghiệm thật</label><textarea id="learnerProfile"></textarea>
+    <div class="toolbar" style="margin-top:12px"><button class="btn" onclick="saveSettings()">Lưu</button><button class="btn light" onclick="testAI()">Test AI</button></div>
+    <div id="aiTest" class="fb">Chưa test.</div>
   </div>
 </div>
 
 <script>
-const $ = (sel)=>document.querySelector(sel);
-const appKey = "openquiz_style_production_ai_v2";
-const state = JSON.parse(localStorage.getItem(appKey) || "null") || {
-  view:"home", idx:0, flipped:false, errors:[], endpoint:"/api/ai-coach",
-  name:"", role:"Production Shift Leader / Line Manager",
-  profile:"Shift Leader, 3 production lines, 8 Team Leaders, around 120 operators, MES, Power BI, delivery, productivity, ramp-up, quality, safety."
-};
-function save(){localStorage.setItem(appKey, JSON.stringify(state));}
+const APP_KEY="pi_coach_v2_state";
+const state=JSON.parse(localStorage.getItem(APP_KEY)||"null")||{view:"dashboard",idx:0,learned:{},weak:{},errors:[],endpoint:"/api/ai-coach",learnerName:"Hùng",targetRole:"Production Shift Leader / Line Manager",profile:"Shift Leader, 3 production lines, 8 Team Leaders, around 120 operators, MES, Power BI, delivery, productivity, ramp-up, quality, safety."};
+const views=[["dashboard","🏠 Dashboard"],["vocab","📚 Vocabulary"],["learn","🎧 Học từ"],["speaking","🎙 Speaking Room"],["interview","🧑‍💼 Interview"],["roleplay","🏭 Role-play"],["errors","🧾 Error Notebook"],["settings","⚙️ Settings"]];
+const scenarios=["There is an urgent order that must ship tomorrow. Can your shift support it?","Line 2 is behind target by 15%. What should you do?","QA found repeated defects in the last batch. What is your first action?","Several operators are absent today. How will you balance manpower?","A machine stopped during peak output time. What will you do?","A new model ramp-up is unstable. How will you support it?","An operator did not follow PPE requirements. What will you do?"];
+let currentPrompt=scenarios[0], currentMode="speaking", currentVocab=null;
+let followUpStore={};
+function save(){localStorage.setItem(APP_KEY,JSON.stringify(state))}
+function safe(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function $(id){return document.getElementById(id)}
+function show(v){state.view=v;save();document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));$(v).classList.add("active");document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.view===v));}
+function init(){document.getElementById("tabs").innerHTML=views.map(v=>`<button class="tab" data-view="${v[0]}" onclick="show('${v[0]}')">${v[1]}</button>`).join("");renderAll();show(state.view)}
+function filteredVocab(){let a=window.VOCAB_DATA||[];let q=$("vSearch")?.value?.toLowerCase()||"";let cat=$("vCat")?.value||"All";let topic=$("vTopic")?.value||"All";let type=$("vType")?.value||"All";let status=$("vStatus")?.value||"All";return a.filter(x=>(cat==="All"||x.mainCategory===cat)&&(topic==="All"||x.topic===topic)&&(type==="All"||x.type===type)&&(!q||JSON.stringify(x).toLowerCase().includes(q))&&(status==="All"||(status==="Weak"?state.weak[x.id]:status==="Learned"?state.learned[x.id]:!state.learned[x.id])))}
+function renderAll(){renderDashboard();renderVocab();renderLearn();renderSpeaking();renderInterview();renderRoleplay();renderErrors();renderSettings();}
+function renderDashboard(){let total=VOCAB_DATA.length,learned=Object.keys(state.learned).length,weak=Object.keys(state.weak).length; $("dashboard").innerHTML=`<div class="grid grid3"><div class="card stat"><span class="small">Vocabulary bank</span><b>${total}</b><p>TOEIC + Manufacturing + Interview phrases.</p></div><div class="card stat"><span class="small">Learned</span><b>${learned}</b><div class="progress"><div class="bar" style="width:${Math.min(100,learned/total*100)}%"></div></div></div><div class="card stat"><span class="small">Weak words/sentences</span><b>${weak+state.errors.length}</b><p>Cần ôn lại trước khi học mới.</p></div></div><div class="card" style="margin-top:16px"><h2>Lộ trình học hôm nay</h2><div class="grid grid3"><div class="fb"><b>1. Vocabulary</b><br>Học 30–40 từ theo bộ lọc: TOEIC/Manufacturing/Interview.</div><div class="fb"><b>2. Speaking Room</b><br>Ghi âm 60 giây, xem waveform, dừng rồi gửi AI.</div><div class="fb"><b>3. Error Notebook</b><br>Luyện lại câu yếu và cụm yếu.</div></div></div>`}
+function renderVocab(){let cats=["All",...new Set(VOCAB_DATA.map(x=>x.mainCategory))],topics=["All",...new Set(VOCAB_DATA.map(x=>x.topic))],types=["All",...new Set(VOCAB_DATA.map(x=>x.type))]; $("vocab").innerHTML=`<div class="card"><h2>Vocabulary Bank</h2><div class="toolbar"><select id="vCat" onchange="updateVocab()">${cats.map(x=>`<option>${x}</option>`).join("")}</select><select id="vTopic" onchange="updateVocab()">${topics.map(x=>`<option>${x}</option>`).join("")}</select><select id="vType" onchange="updateVocab()">${types.map(x=>`<option>${x}</option>`).join("")}</select><select id="vStatus" onchange="updateVocab()"><option>All</option><option>New</option><option>Learned</option><option>Weak</option></select><input id="vSearch" placeholder="Search word/topic..." oninput="updateVocab()"><button class="btn blue" onclick="dailyWords()">Daily 40</button></div><div class="grid grid2"><div class="card word-card" id="wordCard"></div><div class="card"><h3>Danh sách</h3><div id="vocabList" style="max-height:520px;overflow:auto"></div></div></div></div>`; updateVocab()}
+function updateVocab(){let arr=filteredVocab(); if(!arr.length) arr=VOCAB_DATA; currentVocab=arr[state.idx%arr.length]; $("wordCard").innerHTML=wordHTML(currentVocab); $("vocabList").innerHTML=`<table class="table"><thead><tr><th>Term</th><th>Topic</th><th></th></tr></thead><tbody>${arr.slice(0,160).map((x,i)=>`<tr><td><b>${safe(x.term)}</b><br><span class="small">${safe(x.vietnameseMeaning)}</span></td><td><span class="pill">${safe(x.mainCategory)}</span><span class="pill green">${safe(x.topic)}</span></td><td><button class="btn light" onclick="pickVocab('${x.id}')">Open</button></td></tr>`).join("")}</tbody></table>`}
+function wordHTML(x){return `<div style="width:100%"><div class="word-term">${safe(x.term)}</div><div class="ipa">${safe(x.partOfSpeech)} ${x.ipa? "· "+safe(x.ipa):"· IPA pending"}</div><div class="meaning">${safe(x.vietnameseMeaning)}</div><div>${["mainCategory","topic","type","level"].map(k=>`<span class="pill">${safe(x[k])}</span>`).join("")}</div><div class="details"><div class="detail-row"><b>Definition:</b> ${safe(x.englishDefinition)}</div><div class="detail-row"><b>Example:</b> ${safe(x.exampleSentence)}</div><div class="detail-row"><b>Interview:</b> ${safe(x.interviewSentence)}</div><div class="detail-row"><b>Collocations:</b> ${safe(x.collocations)}</div><div class="detail-row"><b>Common mistake:</b> ${safe(x.commonMistake)}</div></div><div class="toolbar" style="justify-content:center"><button class="btn light" onclick="speakText('${safe(x.term).replace(/'/g,"\\'")}')">🔊 Word</button><button class="btn light" onclick="speakText('${safe(x.exampleSentence).replace(/'/g,"\\'")}')">🔊 Sentence</button><button class="btn blue" onclick="practiceVocab('${x.id}')">🎙 Record</button><button class="btn green" onclick="markLearned('${x.id}')">Learned</button><button class="btn light" onclick="markWeak('${x.id}')">Weak</button></div></div>`}
+function pickVocab(id){let idx=VOCAB_DATA.findIndex(x=>x.id===id);state.idx=idx>=0?idx:0;save();updateVocab()}
+function dailyWords(){ $("vStatus").value="New"; updateVocab() }
+function markLearned(id){state.learned[id]=Date.now();save();renderAll();show("vocab")}
+function markWeak(id){state.weak[id]=Date.now();save();renderAll();show("vocab")}
+function practiceVocab(id){let x=VOCAB_DATA.find(v=>v.id===id);currentMode="vocabulary";currentPrompt=x.term;openRecorder(`Read this word/phrase: ${x.term}`)}
 
-const lessons = [
-  {topic:"Production Control", words:[
-    ["production line","noun","/prəˈdʌkʃən laɪn/","chuyền sản xuất","I managed three production lines during my shift."],
-    ["hourly output","noun phrase","/ˈaʊərli ˈaʊtpʊt/","sản lượng theo giờ","I monitored hourly output to keep the line on plan."],
-    ["daily target","noun phrase","/ˈdeɪli ˈtɑːrɡɪt/","mục tiêu hằng ngày","We had to meet the daily target before the end of the shift."],
-    ["bottleneck","noun","/ˈbɑːtlnek/","điểm nghẽn","I identified the bottleneck and adjusted manpower."],
-    ["line efficiency","noun phrase","/laɪn ɪˈfɪʃənsi/","hiệu suất chuyền","We improved line efficiency by reducing waiting time."],
-    ["cycle time","noun phrase","/ˈsaɪkəl taɪm/","thời gian chu kỳ","The Kaizen activity reduced cycle time by about 1.5 seconds."],
-    ["capacity","noun","/kəˈpæsəti/","năng lực sản xuất","I checked line capacity before accepting an urgent order."],
-    ["behind plan","phrase","/bɪˈhaɪnd plæn/","trễ kế hoạch","Line 2 was behind plan, so I moved trained operators to support it."],
-    ["line balance","noun phrase","/laɪn ˈbæləns/","cân bằng chuyền","Good line balance helps us reduce bottlenecks."],
-    ["hourly follow-up","noun phrase","/ˈaʊərli ˈfɑːloʊ ʌp/","theo dõi từng giờ","For urgent orders, I used hourly follow-up with Team Leaders."],
-    ["shop floor","noun","/ʃɑːp flɔːr/","khu vực sản xuất","I spend time on the shop floor to see real issues."],
-  ]},
-  {topic:"Quality Safety Delivery", words:[
-    ["defect rate","noun phrase","/ˈdiːfekt reɪt/","tỷ lệ lỗi","When the defect rate increased, I checked the root cause."],
-    ["yield","noun","/jiːld/","tỷ lệ đạt","I monitored yield and rework during the shift."],
-    ["containment action","noun phrase","/kənˈteɪnmənt ˈækʃən/","hành động cô lập lỗi","First, I took containment action to protect the customer."],
-    ["root cause","noun phrase","/ruːt kɔːz/","nguyên nhân gốc","We used Fishbone to find the root cause."],
-    ["corrective action","noun phrase","/kəˈrektɪv ˈækʃən/","hành động khắc phục","The team implemented corrective actions after the 8D review."],
-    ["urgent order","noun phrase","/ˈɜːrdʒənt ˈɔːrdər/","đơn hàng gấp","I set hourly priorities for urgent orders."],
-    ["on-time delivery","noun phrase","/ɑːn taɪm dɪˈlɪvəri/","giao hàng đúng hạn","On-time delivery depends on output, quality, and material readiness."],
-    ["safety compliance","noun phrase","/ˈseɪfti kəmˈplaɪəns/","tuân thủ an toàn","I ensure safety compliance before pushing output."],
-    ["PPE","noun","/piː piː iː/","đồ bảo hộ cá nhân","Operators must wear PPE in required areas."],
-    ["near miss","noun","/nɪr mɪs/","suýt tai nạn","A near miss must be reported and analyzed."],
-  ]},
-  {topic:"Manpower Leadership", words:[
-    ["manpower allocation","noun phrase","/ˈmænpaʊər ˌæləˈkeɪʃən/","phân bổ nhân lực","I adjusted manpower allocation based on line priority."],
-    ["skill matrix","noun phrase","/skɪl ˈmeɪtrɪks/","ma trận kỹ năng","I used the skill matrix to assign trained operators."],
-    ["Team Leader","noun","/tiːm ˈliːdər/","tổ trưởng/nhóm trưởng","I coached Team Leaders to solve problems quickly."],
-    ["operator","noun","/ˈɑːpəreɪtər/","công nhân vận hành","I supervised around 120 operators during the shift."],
-    ["headcount","noun","/ˈhedkaʊnt/","số lượng nhân sự","I checked headcount before confirming the production plan."],
-    ["cross-training","noun","/krɔːs ˈtreɪnɪŋ/","đào tạo chéo","Cross-training helps us respond to manpower shortages."],
-    ["escalate","verb","/ˈeskəleɪt/","báo cáo leo thang","I escalate risks early if delivery may be affected."],
-    ["coordinate with","verb phrase","/koʊˈɔːrdɪneɪt wɪð/","phối hợp với","I coordinate with QA, Maintenance, Engineering, and Warehouse."],
-    ["data-driven decision","noun phrase","/ˈdeɪtə ˈdrɪvən dɪˈsɪʒən/","quyết định dựa trên dữ liệu","I use MES and Power BI to make data-driven decisions."],
-    ["daily handover","noun phrase","/ˈdeɪli ˈhændoʊvər/","bàn giao ca","A clear daily handover keeps the next shift aligned."],
-  ]}
-];
-const deck = lessons.flatMap(x=>x.words.map(w=>({topic:x.topic, term:w[0], pos:w[1], ipa:w[2], vi:w[3], ex:w[4]})));
+function learnFiltered(){let a=window.VOCAB_DATA||[];let q=$("lSearch")?.value?.toLowerCase()||"";let cat=$("lCat")?.value||"All";let topic=$("lTopic")?.value||"All";let type=$("lType")?.value||"All";let status=$("lStatus")?.value||"New";return a.filter(x=>(cat==="All"||x.mainCategory===cat)&&(topic==="All"||x.topic===topic)&&(type==="All"||x.type===type)&&(!q||JSON.stringify(x).toLowerCase().includes(q))&&(status==="All"||(status==="Weak"?state.weak[x.id]:status==="Learned"?state.learned[x.id]:!state.learned[x.id])))}
+function renderLearn(){let cats=["All",...new Set(VOCAB_DATA.map(x=>x.mainCategory))],topics=["All",...new Set(VOCAB_DATA.map(x=>x.topic))],types=["All",...new Set(VOCAB_DATA.map(x=>x.type))];$("learn").innerHTML=`<div class="card"><h2>Học từ vựng theo chủ đề</h2><p class="small">Dữ liệu đang lấy từ <b>data/vocabulary.js</b>. Sheet gốc nằm ở <b>data/vocabulary.csv</b>. Bạn có thể học theo TOEIC Core, Manufacturing, Interview Phrases, topic, type và trạng thái từ.</p><div class="toolbar"><select id="lCat" onchange="updateLearn(true)">${cats.map(x=>`<option>${x}</option>`).join("")}</select><select id="lTopic" onchange="updateLearn(true)">${topics.map(x=>`<option>${x}</option>`).join("")}</select><select id="lType" onchange="updateLearn(true)">${types.map(x=>`<option>${x}</option>`).join("")}</select><select id="lStatus" onchange="updateLearn(true)"><option>New</option><option>All</option><option>Learned</option><option>Weak</option></select><input id="lSearch" placeholder="Tìm từ/cụm/chủ đề..." oninput="updateLearn(true)"><button class="btn blue" onclick="setLearnPreset('Manufacturing')">Manufacturing</button><button class="btn light" onclick="setLearnPreset('TOEIC Core')">TOEIC 600</button><button class="btn light" onclick="setLearnPreset('Interview Phrases')">Interview</button></div><div class="learn-layout"><div class="card learn-main" id="learnCard"></div><div class="card"><h3>Chủ đề trong bộ đang chọn</h3><div id="learnTopics" class="topic-list"></div><h3 style="margin-top:16px">Danh sách từ/cụm</h3><div id="learnList" class="topic-list"></div></div></div></div>`;updateLearn(true)}
+function setLearnPreset(cat){$("lCat").value=cat;$("lTopic").value="All";$("lType").value="All";$("lStatus").value="New";state.learnIdx=0;save();updateLearn(true)}
+function updateLearn(reset=false){let arr=learnFiltered();if(!arr.length){arr=VOCAB_DATA.filter(x=>($("lCat")?.value==="All"||x.mainCategory===$("lCat")?.value));if(!arr.length)arr=VOCAB_DATA}if(reset){state.learnIdx=0;save()}let i=(state.learnIdx||0)%arr.length;let x=arr[i];let byTopic={};arr.forEach(v=>{byTopic[v.topic]=(byTopic[v.topic]||0)+1});$("learnTopics").innerHTML=Object.entries(byTopic).sort((a,b)=>b[1]-a[1]).map(([t,c])=>`<span class="topic-chip ${$("lTopic").value===t?'active':''}" onclick="$('lTopic').value='${t.replace(/'/g,"\\'")}';updateLearn(true)">${safe(t)} (${c})</span>`).join("");$("learnList").innerHTML=`<table class="table"><tbody>${arr.slice(0,100).map((v,j)=>`<tr><td><b>${safe(v.term)}</b><br><span class="small">${safe(v.topic)} · ${safe(v.type)}</span></td><td><button class="btn light" onclick="state.learnIdx=${j};save();updateLearn()">Học</button></td></tr>`).join("")}</tbody></table>`;$("learnCard").innerHTML=learnCardHTML(x,i,arr.length)}
+function learnCardHTML(x,i,total){return `<div style="width:100%"><div class="learn-term">${safe(x.term)}</div><div class="ipa">${safe(x.partOfSpeech)} ${x.ipa?" · "+safe(x.ipa):" · IPA pending"}</div><div style="margin:12px 0">${[x.mainCategory,x.topic,x.type,x.level].map(v=>`<span class="pill">${safe(v)}</span>`).join("")}</div><div class="mini-actions" style="margin:16px 0"><button class="btn light" onclick="speakText('${safe(x.term).replace(/'/g,"\\'")}')">🔊 Từ</button><button class="btn light" onclick="speakText('${safe(x.exampleSentence).replace(/'/g,"\\'")}')">🔊 Ví dụ</button><button class="btn blue" onclick="practiceVocab('${x.id}')">🎙 Ghi âm</button><button class="btn green" onclick="markLearnedOnly('${x.id}')">Đã học</button></div><input class="learn-input" id="learnAnswer" placeholder="Nhập nghĩa tiếng Việt hoặc cụm tiếng Anh..."><button class="btn blue" style="width:100%;margin-top:12px" onclick="checkLearnAnswer('${x.id}')">Kiểm tra</button><button class="btn light" style="width:100%;margin-top:10px" onclick="showLearnAnswer('${x.id}')">Tôi không biết</button><button class="btn light" style="width:100%;margin-top:10px" onclick="nextLearn()">Thẻ tiếp theo →</button><div id="learnResult" class="fb" style="margin-top:14px">Đã hoàn thành: ${Object.keys(state.learned).length} / ${VOCAB_DATA.length} · Thẻ ${i+1}/${total}</div></div>`}
+function checkLearnAnswer(id){let x=VOCAB_DATA.find(v=>v.id===id);let a=$("learnAnswer").value.toLowerCase().trim();let ok=a&&((x.vietnameseMeaning||"").toLowerCase().includes(a)||(x.term||"").toLowerCase().includes(a)||a.includes((x.term||"").toLowerCase()));$("learnResult").innerHTML= ok?`<b style="color:var(--green)">Đúng hướng.</b><br><b>Nghĩa:</b> ${safe(x.vietnameseMeaning)}<br><b>Example:</b> ${safe(x.exampleSentence)}<br><b>Collocations:</b> ${safe(x.collocations)}`:`<b style="color:var(--red)">Chưa đúng.</b><br><b>Nghĩa:</b> ${safe(x.vietnameseMeaning)}<br><b>Example:</b> ${safe(x.exampleSentence)}<br><b>Common mistake:</b> ${safe(x.commonMistake)}`}
+function showLearnAnswer(id){let x=VOCAB_DATA.find(v=>v.id===id);$("learnResult").innerHTML=`<b>${safe(x.term)}</b><br><b>Nghĩa:</b> ${safe(x.vietnameseMeaning)}<br><b>Definition:</b> ${safe(x.englishDefinition)}<br><b>Example:</b> ${safe(x.exampleSentence)}<br><b>Interview:</b> ${safe(x.interviewSentence)}<br><b>Collocations:</b> ${safe(x.collocations)}<br><b>Pronunciation focus:</b> ${safe(x.pronunciationFocus)}`}
+function markLearnedOnly(id){state.learned[id]=Date.now();save();updateLearn()}
+function nextLearn(){let arr=learnFiltered();state.learnIdx=((state.learnIdx||0)+1)%Math.max(arr.length,1);save();updateLearn()}
 
-const tabs = [
-  ["speaking","▱","Speaking"], ["conversation","☁","Hội thoại"], ["grammar","▰","Ngữ pháp"],
-  ["reading","▣","Đọc hiểu"], ["learn","✥","Học"], ["test","▤","Kiểm tra"], ["dictation","▦","Nghe Chép"]
-];
+function renderSpeaking(){currentPrompt=scenarios[0];$("speaking").innerHTML=`<div class="card"><h2>Virtual Speaking Room</h2><div class="toolbar"><button class="btn light" onclick="newScenario()">↻ Đổi tình huống</button><span class="status"><span class="dot on"></span>AI online if key is valid</span></div><div class="chat" id="sChat"><div class="msg ai">${safe(currentPrompt)}</div></div><div class="toolbar"><button class="btn" onclick="openRecorder(currentPrompt);currentMode='speaking'">🎙 Trả lời bằng giọng nói</button><button class="btn light" onclick="manualAnswer('speaking')">⌨ Nhập</button></div><textarea id="sInput" placeholder="Hoặc nhập câu trả lời ở đây..."></textarea><button class="btn blue" onclick="sendManual('speaking')">Gửi & phân tích</button><div id="sFeedback" style="margin-top:14px"></div></div>`}
+function newScenario(){currentPrompt=scenarios[Math.floor(Math.random()*scenarios.length)];$("sChat").innerHTML=`<div class="msg ai">${safe(currentPrompt)}</div>`}
+function renderInterview(){let qs=["Tell me about yourself.","How do you control daily output?","How do you handle urgent orders?","How do you balance manpower across lines?","What do you do when defect rate increases?","How do you ensure safety compliance?","Tell me about your ramp-up experience."];$("interview").innerHTML=`<div class="card"><h2>Interview Practice</h2><div class="grid grid3">${qs.map(q=>`<div class="fb"><b>${safe(q)}</b><br><button class="btn blue" onclick="currentPrompt='${q.replace(/'/g,"\\'")}';currentMode='interview';openRecorder(currentPrompt)">🎙 Answer</button></div>`).join("")}</div><div id="iFeedback" style="margin-top:14px"></div></div>`}
+function renderRoleplay(){let roles=["Production Manager","QA Staff","Maintenance Engineer","Team Leader","Warehouse Staff","EHS Officer"];$("roleplay").innerHTML=`<div class="card"><h2>Factory Role-play</h2><div class="grid grid3">${roles.map(r=>`<div class="fb"><b>${r}</b><br>${safe(scenarios[Math.floor(Math.random()*scenarios.length)])}<br><button class="btn blue" onclick="currentMode='roleplay';currentPrompt='${r}: ${scenarios[0]}';openRecorder(currentPrompt)">Start</button></div>`).join("")}</div><div id="rFeedback" style="margin-top:14px"></div></div>`}
+function renderErrors(){ $("errors").innerHTML=`<div class="card"><h2>Error Notebook</h2>${state.errors.length?`<table class="table"><thead><tr><th>Date</th><th>Mode</th><th>Your answer</th><th>Professional</th></tr></thead><tbody>${state.errors.map(e=>`<tr><td>${safe(e.date)}</td><td>${safe(e.mode)}</td><td>${safe(e.answer)}</td><td>${safe(e.professionalAnswer||"")}</td></tr>`).join("")}</tbody></table>`:`<div class="fb">Chưa có lỗi. Hãy luyện Speaking Room trước.</div>`}</div>`}
+function renderSettings(){ $("settings").innerHTML=`<div class="card"><h2>Settings</h2><p>Endpoint: ${safe(state.endpoint)}</p><p>Role: ${safe(state.targetRole)}</p><p class="small">API key nằm trên Vercel Environment Variables: OPENROUTER_API_KEY.</p></div>`}
+function openSettings(){ $("endpoint").value=state.endpoint;$("learnerName").value=state.learnerName;$("targetRole").value=state.targetRole;$("learnerProfile").value=state.profile;$("settingsModal").classList.add("show")}
+function closeSettings(){ $("settingsModal").classList.remove("show") }
+function saveSettings(){state.endpoint=$("endpoint").value||"/api/ai-coach";state.learnerName=$("learnerName").value;state.targetRole=$("targetRole").value;state.profile=$("learnerProfile").value;save();$("aiTest").innerHTML="Đã lưu."}
+async function testAI(){let res=await callAI({mode:"test",question:"Test connection",answer:"OK",role:state.targetRole,profile:state.profile});$("aiTest").innerHTML=res.ok?`<span class="pill green">AI hoạt động</span><pre>${safe(res.text).slice(0,900)}</pre>`:`<span class="pill red">Chưa kết nối</span><pre>${safe(res.text)}</pre>`}
+function speakText(t){speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.9;speechSynthesis.speak(u)}
+let rec={stream:null,ctx:null,analyser:null,raf:null,start:0,timer:null,recognition:null,finalText:"",target:""};
+function openRecorder(prompt){rec.target=prompt;$("recPrompt").textContent=prompt;$("recTranscript").value="";$("recTime").textContent="00:00";$("recStatus").textContent="Chưa ghi âm";$("recDot").className="dot";$("recModal").classList.add("show");drawEmptyWave()}
+function closeRecorder(){stopRecording(true);$("recModal").classList.remove("show")}
+function drawEmptyWave(){let c=$("wave"),ctx=c.getContext("2d");c.width=c.offsetWidth*devicePixelRatio;c.height=c.offsetHeight*devicePixelRatio;ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle="#93c5fd";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,c.height/2);ctx.lineTo(c.width,c.height/2);ctx.stroke()}
+async function startRecording(){try{rec.stream=await navigator.mediaDevices.getUserMedia({audio:true});rec.ctx=new (window.AudioContext||window.webkitAudioContext)();let src=rec.ctx.createMediaStreamSource(rec.stream);rec.analyser=rec.ctx.createAnalyser();rec.analyser.fftSize=2048;src.connect(rec.analyser);rec.start=Date.now();$("startRecBtn").disabled=true;$("stopRecBtn").disabled=false;$("recDot").className="dot on";$("recStatus").textContent="Đang ghi âm - nói ngay bây giờ";animateWave();rec.timer=setInterval(()=>{let s=Math.floor((Date.now()-rec.start)/1000);$("recTime").textContent=`${String(Math.floor(s/60)).padStart(2,"0")}:${String(s%60).padStart(2,"0")}`;if(s>=60)stopRecording()},250);startSpeechRecognition()}catch(e){$("recStatus").textContent="Không mở được mic: "+e.message;$("recDot").className="dot bad"}}
+function startSpeechRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$("recStatus").textContent+=" · Browser không hỗ trợ transcript tự động";return}rec.finalText="";let r=new SR();rec.recognition=r;r.lang="en-US";r.continuous=true;r.interimResults=true;r.onresult=e=>{let txt="";for(let i=0;i<e.results.length;i++){txt+=e.results[i][0].transcript+" "} $("recTranscript").value=txt.trim()};r.onerror=e=>{$("recStatus").textContent="Speech recognition: "+e.error};r.start()}
+function animateWave(){let c=$("wave"),ctx=c.getContext("2d"),buf=new Uint8Array(rec.analyser.frequencyBinCount);function loop(){rec.raf=requestAnimationFrame(loop);rec.analyser.getByteTimeDomainData(buf);ctx.clearRect(0,0,c.width,c.height);ctx.strokeStyle="#2563eb";ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<buf.length;i++){let x=i/buf.length*c.width,y=buf[i]/255*c.height;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.stroke()}loop()}
+function stopRecording(silent=false){try{rec.recognition&&rec.recognition.stop()}catch(e){}try{rec.stream&&rec.stream.getTracks().forEach(t=>t.stop())}catch(e){}try{rec.ctx&&rec.ctx.close()}catch(e){}cancelAnimationFrame(rec.raf);clearInterval(rec.timer);$("startRecBtn").disabled=false;$("stopRecBtn").disabled=true;if(!silent){$("recStatus").textContent="Đã dừng. Kiểm tra transcript rồi bấm Gửi AI."; $("recDot").className="dot"}}
+async function sendRecording(){let answer=$("recTranscript").value.trim(); if(!answer)return alert("Chưa có transcript. Hãy nói lại hoặc nhập tay vào ô transcript."); closeRecorder(); if(currentMode==="speaking"){$("sChat").innerHTML+=`<div class="msg you">${safe(answer)}</div>`;$("sFeedback").innerHTML="Đang phân tích..."} let fb=await analyzeAnswer(currentMode,currentPrompt,answer); if(currentMode==="speaking")$("sFeedback").innerHTML=renderFeedback(fb); if(currentMode==="interview")$("iFeedback").innerHTML=renderFeedback(fb); if(currentMode==="roleplay")$("rFeedback").innerHTML=renderFeedback(fb);}
+async function sendManual(mode){let ans= mode==="speaking"?$("sInput").value.trim():"";if(!ans)return alert("Nhập câu trả lời trước.");let fb=await analyzeAnswer(mode,currentPrompt,ans);$("sFeedback").innerHTML=renderFeedback(fb)}
+function manualAnswer(mode){$("sInput").focus()}
+async function analyzeAnswer(mode,question,answer){let res=await callAI({mode,question,answer,role:state.targetRole,profile:state.profile});let data;if(res.ok){try{data=JSON.parse(res.text)}catch(e){data={correctSentence:"",professionalAnswer:res.text,mistakes:["AI returned non-JSON."]}}}else{data=fallback(answer)}state.errors.unshift({date:new Date().toLocaleString("vi-VN"),mode,question,answer,...data});save();renderErrors();return data}
+async function callAI(payload){try{let r=await fetch(state.endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});let d=await r.json();return r.ok?{ok:true,text:d.text||JSON.stringify(d)}:{ok:false,text:JSON.stringify(d)}}catch(e){return{ok:false,text:e.message}}}
+function fallback(a){return{correctSentence:a,professionalAnswer:"AI offline. Use a clear answer with action, reason, and result.",mistakes:["AI chưa kết nối."],pronunciationNotes:["Kiểm tra API."],usefulPhrases:["hourly output","line capacity","delivery risk"],followUpQuestion:"What is your next action?",scores:{grammar:50,vocabulary:50,clarity:50,interviewQuality:50},summaryVietnamese:"Fallback mode."}}
 
-function init(){
-  renderTabs(); renderHome(); renderSpeaking(); renderConversation(); renderGrammar(); renderReading(); renderLearn(); renderTest(); renderDictation();
-  show(state.view || "home");
+function followUpId(question){
+  const id="fu_"+Date.now()+"_"+Math.random().toString(36).slice(2,8);
+  followUpStore[id]=question;
+  return id;
 }
-function renderTabs(){
-  $("#tabs").innerHTML = tabs.map(t=>`<button class="tab" onclick="show('${t[0]}')" id="tab-${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join("");
-}
-function show(view){
-  state.view=view; save();
-  document.querySelectorAll("section[id^='view-']").forEach(s=>s.classList.add("hidden"));
-  const id = view==="home" ? "#view-home" : "#view-"+view;
-  $(id).classList.remove("hidden");
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  const active = $("#tab-"+view); if(active) active.classList.add("active");
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-function current(){ return deck[state.idx % deck.length]; }
-function renderHome(){
-  const w=current();
-  $("#view-home").innerHTML = `
-    <div class="study-card">
-      <div class="card-setting">☷</div>
-      <div>
-        <div class="card-word">${state.flipped ? w.vi : w.term}</div>
-        <div class="ipa">${w.pos} &nbsp; - &nbsp; ${w.ipa}</div>
-        ${state.flipped ? `<div class="meaning">${w.term}</div><div class="sample">${w.ex}</div><span class="tag">${w.topic}</span>` : ``}
-      </div>
-      <div class="card-actions">
-        <button class="round" onclick="openRecord('${esc(w.term)}')">🎙</button>
-        <span class="switch" onclick="flip()"></span>
-        <button class="round light" onclick="speak('${esc(w.term)}')">🔊</button>
-      </div>
-    </div>
-    <div class="under-card">
-      <button class="btn light">▧ Tiến độ</button>
-      <button class="navbtn" onclick="prev()">←</button>
-      <div class="small">Thẻ ${state.idx+1} / ${deck.length}</div>
-      <button class="navbtn" onclick="next()">→</button>
-      <button class="navbtn" onclick="shuffle()">⇄</button>
-    </div>
-    <div class="small" style="text-align:center;margin-top:12px">Phím tắt: <span class="kbd">←</span> <span class="kbd">→</span> chuyển thẻ · <span class="kbd">Space</span> lật thẻ</div>
-  `;
-}
-function flip(){state.flipped=!state.flipped; save(); renderHome();}
-function next(){state.idx=(state.idx+1)%deck.length; state.flipped=false; save(); renderHome(); renderLearn(); renderTest(); renderDictation();}
-function prev(){state.idx=Math.max(0,state.idx-1); state.flipped=false; save(); renderHome(); renderLearn(); renderTest(); renderDictation();}
-function shuffle(){state.idx=Math.floor(Math.random()*deck.length); state.flipped=false; save(); renderHome(); renderLearn(); renderTest(); renderDictation();}
-
-function renderSpeaking(){
-  $("#view-speaking").innerHTML = `
-    <div class="wide-card">
-      <div class="toolbar"><button class="btn light" onclick="newSpeaking()">↻ Đổi câu hỏi</button><span class="tag">Production Interview</span></div>
-      <div class="quiz-title" id="speakQuestion">Tell me about your production experience.</div>
-      <p class="small">Hãy thử dùng <b id="speakKeyword">production line</b> trong câu trả lời.</p>
-      <div class="hint-row"><span onclick="showHint()">Xem gợi ý</span><span onclick="$('#speakIdea').classList.toggle('hidden')">Bí ý tưởng?</span><span onclick="showDefinition()">Xem định nghĩa</span></div>
-      <div id="speakIdea" class="result hidden">Khung trả lời: I am responsible for... / I monitor... / When there is a problem, I...</div>
-      <div class="small" style="text-align:center">Đang nói: <b>English</b></div>
-      <div class="speakbar">
-        <button class="btn" onclick="voiceAnswer()">🎙 Bắt đầu nói</button>
-        <button class="btn light" onclick="typeAnswer()">⌨ Nhập</button>
-      </div>
-      <textarea id="answerBox" class="hidden" placeholder="Nhập câu trả lời tiếng Anh ở đây..."></textarea>
-      <div class="toolbar hidden" id="answerActions"><button class="btn blue" onclick="analyzeAnswer()">Sửa câu với AI</button><button class="btn light" onclick="speak($('#answerBox').value)">🔊 Đọc câu của tôi</button></div>
-      <div id="speakFeedback" class="result">Feedback sẽ hiện ở đây.</div>
-    </div>`;
-}
-const speakingQuestions = [
-  ["Tell me about your production experience.","production line"],
-  ["How do you control daily output?","hourly output"],
-  ["What do you do when one line is behind plan?","bottleneck"],
-  ["How do you handle urgent orders?","urgent order"],
-  ["How do you balance manpower across lines?","manpower allocation"],
-  ["How do you control quality during your shift?","defect rate"],
-  ["Tell me about a production problem you solved.","root cause"]
-];
-function newSpeaking(){
-  const q = speakingQuestions[Math.floor(Math.random()*speakingQuestions.length)];
-  $("#speakQuestion").textContent=q[0]; $("#speakKeyword").textContent=q[1]; $("#speakFeedback").textContent="Feedback sẽ hiện ở đây.";
-}
-function showHint(){ $("#speakFeedback").innerHTML = "Gợi ý: trả lời theo công thức <b>Scope → Action → Tool → Result</b>. Ví dụ: I monitor hourly output in MES and coordinate with Team Leaders to solve bottlenecks quickly."; }
-function showDefinition(){ const w=deck.find(x=>x.term===$("#speakKeyword").textContent); if(w) $("#speakFeedback").innerHTML=`<b>${w.term}</b>: ${w.vi}<br>${w.ex}`; }
-function typeAnswer(){ $("#answerBox").classList.remove("hidden"); $("#answerActions").classList.remove("hidden"); }
-function voiceAnswer(){ typeAnswer(); listen(t=>{$("#answerBox").value=t; analyzeAnswer();}); }
-
-async function analyzeAnswer(){
-  const answer=$("#answerBox").value.trim(); if(!answer) return alert("Bạn chưa có câu trả lời.");
-  const question=$("#speakQuestion").textContent;
-  $("#speakFeedback").innerHTML = "Đang gọi AI...";
-  const payload = {mode:"interview", question, answer, role:state.role, profile:state.profile};
-  const ai = await callAI(payload);
-  const out = ai.ok ? ai.text : fallbackFeedback(question, answer);
-  $("#speakFeedback").innerHTML = out.replace(/\n/g,"<br>");
-  state.errors.unshift({date:new Date().toLocaleString("vi-VN"), type:"Speaking", original:answer, corrected:out.slice(0,450)});
-  save();
-}
-
-function renderConversation(){
-  $("#view-conversation").innerHTML = `
-    <div class="wide-card">
-      <div class="toolbar"><button class="btn light" onclick="resetChat()">↻ Đổi tình huống</button><span class="tag">Factory Role-play</span><span class="status"><i id="apiDot" class="dot"></i><span id="apiText">AI chưa test</span></span></div>
-      <div class="chat" id="chat"></div>
-      <div class="speakbar">
-        <button class="btn" onclick="roleVoice()">🎙 Trả lời bằng giọng nói</button>
-        <button class="btn light" onclick="$('#chatInput').classList.toggle('hidden')">⌨ Nhập</button>
-      </div>
-      <textarea id="chatInput" class="hidden" placeholder="Nhập câu trả lời..."></textarea>
-      <div class="toolbar"><button class="btn blue" onclick="roleSend()">Gửi & sửa liên tục</button><button class="btn light" onclick="speak(lastAI || '')">🔊 Nghe AI</button></div>
-    </div>`;
-  resetChat();
-}
-const scenarios = [
-  "Line 2 is behind target by 15%. What should we do?",
-  "QA found repeated defects in the last batch. What is your first action?",
-  "There is an urgent order that must ship tomorrow. Can your shift support it?",
-  "Several operators are absent today. How will you balance manpower?",
-  "A machine stopped during peak output time. What will you do?"
-];
-let lastAI="";
-function resetChat(){
-  const s=scenarios[Math.floor(Math.random()*scenarios.length)];
-  lastAI=s; $("#chat").innerHTML=`<div class="msg ai">${s}</div>`; speak(s);
-}
-function roleVoice(){ listen(t=>{$("#chatInput").value=t; roleSend();}); }
-async function roleSend(){
-  const ans=$("#chatInput").value.trim(); if(!ans) return;
-  $("#chat").innerHTML += `<div class="msg you">${safe(ans)}</div>`;
-  const payload={mode:"roleplay", question:lastAI, answer:ans, role:state.role, profile:state.profile};
-  const ai=await callAI(payload);
-  const reply = ai.ok ? ai.text : fallbackFeedback(lastAI, ans);
-  lastAI=reply.replace(/<[^>]+>/g," ").slice(0,260);
-  $("#chat").innerHTML += `<div class="msg ai">${safe(reply)}</div>`;
-  $("#chat").scrollTop=$("#chat").scrollHeight;
-  $("#chatInput").value="";
-}
-
-function renderGrammar(){
-  $("#view-grammar").innerHTML = `
-    <div class="wide-card">
-      <h2>Ngữ pháp phỏng vấn sản xuất: không học lan man</h2>
-      <div class="cards-grid">
-        <div class="result"><b>by + V-ing</b><br>I control output <b>by checking</b> hourly results.</div>
-        <div class="result"><b>be responsible for + V-ing/N</b><br>I am responsible for <b>managing</b> three lines.</div>
-        <div class="result"><b>When/If + problem, I will...</b><br>If one line is behind plan, I will check the bottleneck.</div>
-        <div class="result"><b>Plural after numbers</b><br>three production <b>lines</b>, 120 <b>operators</b>.</div>
-        <div class="result"><b>Professional verbs</b><br>monitor, coordinate, escalate, implement, improve.</div>
-        <div class="result"><b>Result language</b><br>This helped us reduce waiting time and protect delivery.</div>
-      </div>
-      <button class="btn" style="margin-top:18px" onclick="grammarQuiz()">Làm quiz nhanh</button>
-      <div id="grammarOut" class="result">Quiz sẽ hiện ở đây.</div>
-    </div>`;
-}
-function grammarQuiz(){
-  $("#grammarOut").innerHTML = `
-  Sửa câu: <b>I responsible for manage 3 production line.</b><br><br>
-  Đáp án: <b>I am responsible for managing three production lines.</b><br>
-  Lỗi: thiếu <b>am</b>, sau <b>for</b> dùng <b>V-ing</b>, sau số lượng dùng danh từ số nhiều.`;
-}
-
-function renderReading(){
-  $("#view-reading").innerHTML = `
-    <div class="read-title">Daily Production Handover</div>
-    <div class="paragraph">
-      During yesterday's shift, Line 2 was <span class="blank"><input data-a="behind plan"><small>(trễ kế hoạch)</small></span> because one critical station became a <span class="blank"><input data-a="bottleneck"><small>(điểm nghẽn)</small></span>.
-      The Shift Leader checked the <span class="blank"><input data-a="skill matrix"><small>(ma trận kỹ năng)</small></span> and moved two trained operators to support the station.
-      After two hours of <span class="blank"><input data-a="hourly follow-up"><small>(theo dõi từng giờ)</small></span>, the line recovered and met the daily target.
-    </div>
-    <div class="paragraph">
-      QA also reported an increase in <span class="blank"><input data-a="defect rate"><small>(tỷ lệ lỗi)</small></span>. The team took <span class="blank"><input data-a="containment action"><small>(cô lập lỗi)</small></span> and used a Fishbone diagram to find the <span class="blank"><input data-a="root cause"><small>(nguyên nhân gốc)</small></span>.
-    </div>
-    <button class="btn blue" onclick="checkReading()">Kiểm tra</button>
-    <div id="readingOut" class="result">Điền từ rồi kiểm tra.</div>`;
-}
-function checkReading(){
-  let ok=0,total=0, bad=[];
-  document.querySelectorAll("#view-reading input").forEach(i=>{total++; if(norm(i.value)===norm(i.dataset.a)){ok++; i.style.borderColor="#16a34a"}else{bad.push(i.dataset.a); i.style.borderColor="#dc2626"}});
-  $("#readingOut").innerHTML=`Đúng ${ok}/${total}. ${bad.length?("Cần ôn: "+bad.join(", ")):"Ổn."}`;
-}
-
-function renderLearn(){
-  const w=current();
-  $("#view-learn").innerHTML = `
-    <div class="learn-box">
-      <div class="learn-word">${w.term}</div>
-      <div class="ipa">${w.pos} - ${w.ipa}</div>
-      <input class="learn-input" id="learnInput" placeholder="Nhập nghĩa tiếng Việt hoặc cụm tiếng Anh...">
-      <button class="btn blue" style="width:100%;margin-top:16px" onclick="checkLearn()">Kiểm tra</button>
-      <button class="btn light" style="width:100%;margin-top:12px" onclick="$('#learnOut').innerHTML='${esc(w.vi)}<br>${esc(w.ex)}'">Tôi không biết</button>
-      <div id="learnOut" class="result">Đã hoàn thành: ${state.idx} / ${deck.length}</div>
-    </div>`;
-}
-function checkLearn(){
-  const w=current(), a=$("#learnInput").value;
-  const good = norm(w.vi).includes(norm(a)) || norm(a).includes(norm(w.term));
-  $("#learnOut").innerHTML = good ? `Đúng. Ví dụ: ${w.ex}` : `Chưa ổn. Nghĩa: <b>${w.vi}</b><br>Ví dụ: ${w.ex}`;
-}
-
-function renderTest(){
-  const w=current();
-  const opts = [w.vi, ...deck.filter(x=>x.term!==w.term).sort(()=>Math.random()-0.5).slice(0,3).map(x=>x.vi)].sort(()=>Math.random()-0.5);
-  $("#view-test").innerHTML = `
-    <div class="wide-card">
-      <div class="small">Chọn nghĩa đúng</div>
-      <div class="quiz-title">${w.term}</div>
-      <div class="cards-grid">${opts.map(o=>`<button class="btn light" onclick="testPick('${esc(o)}','${esc(w.vi)}')">${o}</button>`).join("")}</div>
-      <div id="testOut" class="result">Câu hỏi: ${state.idx+1} / ${deck.length}</div>
-    </div>`;
-}
-function testPick(o,a){ $("#testOut").innerHTML = o===a ? "Đúng." : `Sai. Đáp án: <b>${a}</b>`; }
-
-function renderDictation(){
-  const w=current();
-  $("#view-dictation").innerHTML = `
-    <div class="learn-box">
-      <div class="small">Nghe và chép lại câu này</div>
-      <button class="round light" onclick="speak('${esc(w.ex)}')">🔊</button>
-      <input class="learn-input" id="dictInput" placeholder="Nhập lại câu nghe được...">
-      <button class="btn blue" style="width:100%;margin-top:16px" onclick="checkDict()">Kiểm tra</button>
-      <div id="dictOut" class="result">${w.term}</div>
-    </div>`;
-}
-function checkDict(){
-  const target=current().ex, ans=$("#dictInput").value;
-  const score=sim(target,ans);
-  $("#dictOut").innerHTML=`Score: <b>${score}/100</b><br>Target: ${target}`;
-}
-
-function openRecord(target){ $("#recordTarget").textContent=target; $("#recordModal").classList.add("show"); $("#recordResult").textContent="Bấm “Gửi” rồi nói."; }
-function closeRecord(){ $("#recordModal").classList.remove("show"); }
-function startRecord(){
-  const target=$("#recordTarget").textContent;
-  listen(t=>{
-    const score=sim(target,t);
-    $("#recordResult").innerHTML=`Bạn nói: <b>${safe(t)}</b><br>Score: <b>${score}/100</b><br>${score<75?"Hãy nghe mẫu và đọc lại chậm hơn.":"Ổn. Tiếp tục đọc câu ví dụ."}`;
-  });
-}
-
-function speak(text){
-  if(!("speechSynthesis" in window)) return alert("Trình duyệt không hỗ trợ text-to-speech.");
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=.9; speechSynthesis.speak(u);
-}
-function listen(cb){
-  const SR=window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR) return alert("Trình duyệt không hỗ trợ Speech Recognition. Dùng Chrome/Edge và mở qua HTTPS.");
-  const r=new SR(); r.lang="en-US"; r.interimResults=false; r.maxAlternatives=1;
-  r.onerror=e=>alert("Mic lỗi/chưa cấp quyền: "+e.error);
-  r.onresult=e=>cb(e.results[0][0].transcript);
-  r.start();
-}
-
-async function callAI(payload){
-  const endpoints = [state.endpoint || "/api/ai-coach", "/api/ai-coach", "/.netlify/functions/ai-coach"];
-  for(const ep of [...new Set(endpoints)]){
-    try{
-      const res=await fetch(ep,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
-      if(res.ok){
-        const data=await res.json();
-        $("#apiDot")?.classList.add("ok"); if($("#apiText")) $("#apiText").textContent="AI online";
-        return {ok:true, text:data.text || data.output || JSON.stringify(data)};
-      }
-    }catch(e){}
+function continueFollowUp(id){
+  const q=followUpStore[id];
+  if(!q) return alert("Không tìm thấy câu hỏi follow-up.");
+  currentPrompt=q;
+  if(currentMode==="speaking" && $("sChat")){
+    $("sChat").innerHTML+=`<div class="msg ai">${safe(q)}</div>`;
+    $("sChat").scrollTop=$("sChat").scrollHeight;
   }
-  if($("#apiDot")) $("#apiDot").className="dot bad"; if($("#apiText")) $("#apiText").textContent="AI offline fallback";
-  return {ok:false};
+  openRecorder(q);
 }
-function fallbackFeedback(q,a){
-  let fixed=a;
-  fixed=fixed.replace(/\bI responsible\b/ig,"I am responsible")
-             .replace(/\bby check\b/ig,"by checking")
-             .replace(/\bby monitor\b/ig,"by monitoring")
-             .replace(/\b3 production line\b/ig,"three production lines")
-             .replace(/\b120 operator\b/ig,"120 operators");
-  return `<b>Correct sentence:</b> ${safe(fixed)}<br><br><b>More professional:</b> I monitor hourly output, coordinate with Team Leaders, and solve bottlenecks quickly to protect delivery, quality, and safety.<br><br><b>Useful phrases:</b> monitor hourly output · coordinate with Team Leaders · solve bottlenecks quickly`;
+function speakFollowUp(id){
+  const q=followUpStore[id];
+  if(q) speakText(q);
 }
-function openSettings(){ $("#settingsModal").classList.add("show"); $("#endpointInput").value=state.endpoint; $("#nameInput").value=state.name; $("#roleInput").value=state.role; $("#profileInput").value=state.profile;}
-function closeSettings(){ $("#settingsModal").classList.remove("show");}
-function saveSettings(){state.endpoint=$("#endpointInput").value.trim()||"/api/ai-coach"; state.name=$("#nameInput").value.trim(); state.role=$("#roleInput").value.trim(); state.profile=$("#profileInput").value.trim(); save(); $("#aiStatus").innerHTML="Đã lưu."; }
-async function testAI(){ saveSettings(); $("#aiStatus").innerHTML="Đang test..."; const ai=await callAI({mode:"test",question:"Say OK only",answer:"test",role:state.role,profile:state.profile}); $("#aiStatus").innerHTML=ai.ok?`<span class="tag green">AI hoạt động</span><br>${safe(ai.text)}`:`<span class="tag red">Chưa kết nối AI</span><br>Kiểm tra biến OPENAI_API_KEY và deploy serverless function.`; }
-function exportData(){ const blob=new Blob([JSON.stringify(state.errors,null,2)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="speaking_errors.json"; a.click(); URL.revokeObjectURL(url); }
-
-function norm(s){return (s||"").toLowerCase().replace(/[^\w\s]/g,"").replace(/\s+/g," ").trim();}
-function sim(a,b){a=norm(a);b=norm(b); const max=Math.max(a.length,b.length)||1; return Math.round((1-lev(a,b)/max)*100);}
-function lev(a,b){const m=a.length,n=b.length,dp=Array.from({length:m+1},()=>Array(n+1).fill(0)); for(let i=0;i<=m;i++)dp[i][0]=i; for(let j=0;j<=n;j++)dp[0][j]=j; for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return dp[m][n];}
-function safe(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));}
-function esc(s){return String(s??"").replace(/\\/g,"\\\\").replace(/'/g,"\\'").replace(/\n/g," ");}
-window.addEventListener("keydown",e=>{if(e.key==="ArrowRight")next(); if(e.key==="ArrowLeft")prev(); if(e.code==="Space" && state.view==="home"){e.preventDefault(); flip();}});
+function renderFeedback(f){
+  let s=f.scores||{};
+  const follow=(f.followUpQuestion||"").trim();
+  const fid=follow?followUpId(follow):"";
+  const followHtml=follow
+    ? `<div class="fb follow-up-card"><b>Follow-up question</b><br><div style="font-size:18px;font-weight:800;margin:10px 0">${safe(follow)}</div><div class="toolbar"><button class="btn blue" onclick="continueFollowUp('${fid}')">🎙 Trả lời follow-up</button><button class="btn light" onclick="speakFollowUp('${fid}')">🔊 Nghe follow-up</button></div><div class="small">Bấm “Trả lời follow-up” để mở recorder 60 giây và tiếp tục vòng phỏng vấn.</div></div>`
+    : `<div class="fb"><b>Follow-up</b><br>AI chưa tạo câu hỏi tiếp theo.</div>`;
+  return `<div class="feedback-grid">
+    <div class="fb full"><b>Correct sentence</b><br>${safe(f.correctSentence||"")}</div>
+    <div class="fb full"><b>Professional answer</b><br>${safe(f.professionalAnswer||"")}</div>
+    <div class="fb"><b>Main mistakes</b><br>${(f.mistakes||[]).map(x=>"• "+safe(x)).join("<br>")}</div>
+    <div class="fb"><b>Pronunciation notes</b><br>${(f.pronunciationNotes||[]).map(x=>"• "+safe(x)).join("<br>")}</div>
+    <div class="fb"><b>Useful phrases</b><br>${(f.usefulPhrases||[]).map(x=>`<span class="pill green">${safe(x)}</span>`).join("")}</div>
+    ${followHtml}
+    <div class="fb full"><div class="score-grid">${["grammar","vocabulary","clarity","interviewQuality"].map(k=>`<div class="score"><span class="small">${k}</span><br><b>${s[k]??"--"}</b></div>`).join("")}</div></div>
+  </div>`
+}
+function exportErrors(){let blob=new Blob([JSON.stringify(state.errors,null,2)],{type:"application/json"});let url=URL.createObjectURL(blob);let a=document.createElement("a");a.href=url;a.download="error_notebook_v2.json";a.click();URL.revokeObjectURL(url)}
 init();
 </script>
 </body>

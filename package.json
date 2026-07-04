@@ -1,12 +1,1 @@
-{
-  "name": "production-interview-ai-coach",
-  "version": "2.0.0",
-  "private": true,
-  "description": "OpenQuiz-style private web app for manufacturing interview English practice",
-  "scripts": {
-    "start": "npx serve ."
-  },
-  "engines": {
-    "node": ">=18"
-  }
-}
+{"name":"production-interview-ai-coach-v2","version":"2.0.0","private":true,"scripts":{"start":"npx serve ."},"engines":{"node":">=18"}}
