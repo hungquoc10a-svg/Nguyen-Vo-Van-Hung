@@ -21,94 +21,33 @@ Question/context: ${payload.question || ""}
 Learner answer: ${payload.answer || ""}
 `;
 
-  // Prefer Gemini first because the learner may not have OpenAI API credit.
-  if (process.env.GEMINI_API_KEY) {
-    return await callGemini(system, user);
-  }
-
-  if (process.env.OPENAI_API_KEY) {
-    return await callOpenAI(system, user);
+  if (process.env.OPENROUTER_API_KEY) {
+    return await callOpenRouter(system, user);
   }
 
   return {
     statusCode: 500,
     body: JSON.stringify({
       error:
-        "Missing API key. Add GEMINI_API_KEY or OPENAI_API_KEY in Vercel Environment Variables, then redeploy."
+        "Missing OPENROUTER_API_KEY. Add it in Vercel Environment Variables, then redeploy."
     })
   };
 }
 
-async function callGemini(system, user) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+async function callOpenRouter(system, user) {
+  const apiKey = process.env.OPENROUTER_API_KEY;
 
-  const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/` +
-    `${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              text: `${system}\n\n${user}`
-            }
-          ]
-        }
-      ],
-      generationConfig: {
-        temperature: 0.3,
-        maxOutputTokens: 900
-      }
-    })
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    return {
-      statusCode: response.status,
-      body: JSON.stringify({
-        provider: "gemini",
-        error: data
-      })
-    };
-  }
-
-  const text =
-    data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("\n") ||
-    data?.promptFeedback?.blockReason ||
-    JSON.stringify(data);
-
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      provider: "gemini",
-      text
-    })
-  };
-}
-
-async function callOpenAI(system, user) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
-
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://nguyen-vo-van-hung.vercel.app",
+      "X-Title": "Production Interview AI Coach"
     },
     body: JSON.stringify({
-      model,
-      input: [
+      model: "openrouter/free",
+      messages: [
         {
           role: "system",
           content: system
@@ -118,7 +57,8 @@ async function callOpenAI(system, user) {
           content: user
         }
       ],
-      temperature: 0.3
+      temperature: 0.3,
+      max_tokens: 900
     })
   });
 
@@ -128,24 +68,18 @@ async function callOpenAI(system, user) {
     return {
       statusCode: response.status,
       body: JSON.stringify({
-        provider: "openai",
+        provider: "openrouter",
         error: data
       })
     };
   }
 
-  const text =
-    data.output_text ||
-    (data.output || [])
-      .flatMap((o) => o.content || [])
-      .map((c) => c.text || "")
-      .join("\n") ||
-    JSON.stringify(data);
+  const text = data?.choices?.[0]?.message?.content || JSON.stringify(data);
 
   return {
     statusCode: 200,
     body: JSON.stringify({
-      provider: "openai",
+      provider: "openrouter",
       text
     })
   };
