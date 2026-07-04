@@ -40,3 +40,26 @@ V2.2 update
 - Click "Trả lời follow-up" to turn the AI follow-up into the next prompt.
 - The recorder opens again for 60 seconds, so the interview can continue as a loop.
 - Click "Nghe follow-up" to hear the next question.
+
+
+V2.3 update
+===========
+- Fixes intermittent OpenRouter provider errors.
+- Uses OpenRouter free router first, then retries fallback free model IDs.
+- Cleans accidental markdown code fences from AI response.
+- Keeps the same OPENROUTER_API_KEY setup on Vercel.
+
+
+V2.4 update
+===========
+- Fixes misleading AI status badge in Speaking Room.
+- Room no longer shows "AI online" by default.
+- Status now starts as "AI chưa test", changes to "Đang test AI..." while calling API, then "AI online" or "AI offline / lỗi kết nối".
+- CallAI errors are shown more clearly in Settings.
+
+
+V2.5 update
+===========
+- Adds a safety fallback if data/vocabulary.js is missing or not uploaded.
+- Fixes blank page/content issue when only index.html is tested locally without the data folder.
+- Full 600+ vocabulary still requires uploading the /data folder.

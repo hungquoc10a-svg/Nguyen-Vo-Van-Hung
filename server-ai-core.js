@@ -2,33 +2,37 @@ async function createAIResponse(payload) {
   const system = `You are a strict English speaking and interview coach for a Vietnamese learner in manufacturing.
 Focus only on production, factory operations, quality, delivery, manpower, safety, leadership, and job interviews.
 
-Return ONLY valid JSON. No markdown. No extra text.
-
-JSON schema:
+Return ONLY valid JSON. Do not use markdown. Do not wrap the JSON in code fences.
+The JSON shape must be:
 {
-  "correctSentence": "short corrected sentence",
-  "professionalAnswer": "more professional interview answer, 2-4 sentences max",
-  "mistakes": ["Vietnamese mistake 1", "Vietnamese mistake 2", "Vietnamese mistake 3"],
-  "pronunciationNotes": ["short likely pronunciation note based on transcript"],
-  "usefulPhrases": ["phrase 1", "phrase 2", "phrase 3"],
-  "followUpQuestion": "one practical follow-up question",
+  "correctSentence": "...",
+  "professionalAnswer": "...",
+  "mistakes": ["..."],
+  "pronunciationNotes": ["..."],
+  "usefulPhrases": ["..."],
+  "followUpQuestion": "...",
   "scores": {
-    "grammar": 0-100,
-    "vocabulary": 0-100,
-    "clarity": 0-100,
-    "interviewQuality": 0-100
+    "grammar": 0,
+    "vocabulary": 0,
+    "clarity": 0,
+    "interviewQuality": 0
   },
-  "summaryVietnamese": "one short Vietnamese summary"
+  "summaryVietnamese": "..."
 }
 
-Keep output practical, concise, and tied to manufacturing/interview context.`;
+Rules:
+- Keep feedback short, practical, and direct.
+- Do not give generic English advice.
+- Always connect the answer to production, factory operation, line management, quality, delivery, manpower, safety, or interview performance.
+- If the learner answer is weak, still give a usable professional version.
+- Follow-up question must be one short interview question.`;
 
   const user = `
 Mode: ${payload.mode || "interview"}
 Target role: ${payload.role || "Production Shift Leader / Line Manager"}
 Learner profile: ${payload.profile || ""}
 Question/context: ${payload.question || ""}
-Learner answer/transcript: ${payload.answer || ""}
+Learner answer: ${payload.answer || ""}
 `;
 
   if (process.env.OPENROUTER_API_KEY) {
@@ -38,7 +42,8 @@ Learner answer/transcript: ${payload.answer || ""}
   return {
     statusCode: 500,
     body: JSON.stringify({
-      error: "Missing OPENROUTER_API_KEY. Add it in Vercel Environment Variables, then redeploy."
+      error:
+        "Missing OPENROUTER_API_KEY. Add it in Vercel Environment Variables, then redeploy."
     })
   };
 }
@@ -46,45 +51,80 @@ Learner answer/transcript: ${payload.answer || ""}
 async function callOpenRouter(system, user) {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://nguyen-vo-van-hung.vercel.app",
-      "X-Title": "Production Interview AI Coach V2"
-    },
-    body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL || "openrouter/free",
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user }
-      ],
-      temperature: 0.25,
-      max_tokens: 900,
-      response_format: { type: "json_object" }
-    })
-  });
+  // Free-router can occasionally pick a provider that is temporarily failing.
+  // This list retries multiple free model routes before returning an error.
+  const models = [
+    process.env.OPENROUTER_MODEL || "openrouter/free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "mistralai/mistral-7b-instruct:free",
+    "qwen/qwen-2.5-7b-instruct:free",
+    "google/gemma-2-9b-it:free"
+  ];
 
-  const data = await response.json();
+  let lastError = null;
 
-  if (!response.ok) {
-    return {
-      statusCode: response.status,
+  for (const model of [...new Set(models.filter(Boolean))]) {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://nguyen-vo-van-hung.vercel.app",
+        "X-Title": "Production Interview AI Coach"
+      },
       body: JSON.stringify({
-        provider: "openrouter",
-        error: data
+        model,
+        messages: [
+          {
+            role: "system",
+            content: system
+          },
+          {
+            role: "user",
+            content: user
+          }
+        ],
+        temperature: 0.2,
+        max_tokens: 900
       })
-    };
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (response.ok) {
+      let text = data?.choices?.[0]?.message?.content || "";
+
+      // Clean accidental markdown fences if the model ignores instructions.
+      text = String(text)
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/i, "")
+        .replace(/```$/i, "")
+        .trim();
+
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          provider: "openrouter",
+          model,
+          text
+        })
+      };
+    }
+
+    lastError = { model, status: response.status, error: data };
+
+    // Retry on provider/rate/transient errors. Stop early on bad key.
+    const errString = JSON.stringify(data).toLowerCase();
+    if (response.status === 401 || errString.includes("invalid api key")) {
+      break;
+    }
   }
 
-  const text = data?.choices?.[0]?.message?.content || "{}";
-
   return {
-    statusCode: 200,
+    statusCode: lastError?.status || 500,
     body: JSON.stringify({
       provider: "openrouter",
-      text
+      error: lastError
     })
   };
 }

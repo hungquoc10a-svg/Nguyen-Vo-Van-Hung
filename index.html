@@ -80,6 +80,48 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.app{max-width:1
 </div>
 
 <script>
+
+// Safety fallback: if data/vocabulary.js is missing or blocked, keep the app usable.
+// Full vocabulary still comes from data/vocabulary.js when uploaded correctly.
+if (!window.VOCAB_DATA || !Array.isArray(window.VOCAB_DATA)) {
+  window.VOCAB_DATA = [
+    {
+      id:"SAFE-001", mainCategory:"Manufacturing", topic:"Production Control", type:"Phrase", level:"Basic",
+      term:"production line", ipa:"/prəˈdʌkʃən laɪn/", partOfSpeech:"noun phrase",
+      vietnameseMeaning:"chuyền sản xuất", englishDefinition:"A line where products are made step by step.",
+      synonyms:"line; assembly line", collocations:"manage a production line; improve line efficiency; monitor line output",
+      exampleSentence:"I manage three production lines during my shift.",
+      interviewSentence:"I monitor production lines closely to protect output, quality, and safety.",
+      speakingPrompt:"Use production line in an interview answer.",
+      commonMistake:"Do not say 'production lines' without a clear number or context in an interview.",
+      pronunciationFocus:"Focus on the final /n/ in production and line.", tags:"manufacturing,interview", status:"New"
+    },
+    {
+      id:"SAFE-002", mainCategory:"Manufacturing", topic:"Delivery Control", type:"Phrase", level:"Basic",
+      term:"urgent order", ipa:"", partOfSpeech:"noun phrase",
+      vietnameseMeaning:"đơn hàng gấp", englishDefinition:"An order that must be produced or shipped quickly.",
+      synonyms:"priority order; rush order", collocations:"handle an urgent order; prioritize an urgent order; ship an urgent order",
+      exampleSentence:"There is an urgent order that must ship tomorrow.",
+      interviewSentence:"When there is an urgent order, I check material readiness, line capacity, and manpower first.",
+      speakingPrompt:"Answer: Can your shift support this urgent order?",
+      commonMistake:"Do not just say yes. Explain capacity, manpower, material, and risk.",
+      pronunciationFocus:"Stress UR-gent OR-der.", tags:"manufacturing,delivery,interview", status:"New"
+    },
+    {
+      id:"SAFE-003", mainCategory:"Manufacturing", topic:"Quality Control", type:"Phrase", level:"Basic",
+      term:"defect rate", ipa:"", partOfSpeech:"noun phrase",
+      vietnameseMeaning:"tỷ lệ lỗi", englishDefinition:"The percentage or level of defective products.",
+      synonyms:"defect level; quality issue rate", collocations:"reduce defect rate; monitor defect rate; increasing defect rate",
+      exampleSentence:"The defect rate increased during the night shift.",
+      interviewSentence:"If the defect rate increases, I take containment action and check the root cause.",
+      speakingPrompt:"Use defect rate in a quality-control answer.",
+      commonMistake:"Do not ignore containment action when discussing quality problems.",
+      pronunciationFocus:"Final /t/ in defect is important.", tags:"manufacturing,quality,interview", status:"New"
+    }
+  ];
+  console.warn("VOCAB_DATA was not loaded. Using small safety fallback. Upload the data folder for full 600+ vocabulary.");
+}
+
 const APP_KEY="pi_coach_v2_state";
 const state=JSON.parse(localStorage.getItem(APP_KEY)||"null")||{view:"dashboard",idx:0,learned:{},weak:{},errors:[],endpoint:"/api/ai-coach",learnerName:"Hùng",targetRole:"Production Shift Leader / Line Manager",profile:"Shift Leader, 3 production lines, 8 Team Leaders, around 120 operators, MES, Power BI, delivery, productivity, ramp-up, quality, safety.",aiStatus:"unknown"};
 const views=[["dashboard","🏠 Dashboard"],["vocab","📚 Vocabulary"],["learn","🎧 Học từ"],["speaking","🎙 Speaking Room"],["interview","🧑‍💼 Interview"],["roleplay","🏭 Role-play"],["errors","🧾 Error Notebook"],["settings","⚙️ Settings"]];
