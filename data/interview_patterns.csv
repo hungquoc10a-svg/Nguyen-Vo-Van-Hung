@@ -1,0 +1,26 @@
+﻿id,category,pattern,meaningVi,example
+PAT-01,Self Introduction,I am currently working as a [position] at [company].,Hiện tại tôi đang làm vị trí... tại...,I am currently working as a Production Shift Leader at Sonion Vietnam.
+PAT-02,Self Introduction,My main responsibility is to [verb] [area/KPI].,Trách nhiệm chính của tôi là...,"My main responsibility is to control daily output, delivery, manpower, and quality issues."
+PAT-03,Self Introduction,"I manage [number] lines, [number] Team Leaders, and around [number] operators.",Tôi quản lý...,"I manage 3 production lines, 8 Team Leaders, and around 120 operators."
+PAT-04,Experience,I have hands-on experience in [activity].,Tôi có kinh nghiệm thực tế về...,"I have hands-on experience in production control, manpower allocation, and ramp-up execution."
+PAT-05,Experience,I am familiar with [tool/method].,Tôi quen với / có sử dụng...,"I am familiar with 8D, Fishbone analysis, MES, Excel, and Power BI."
+PAT-06,Experience,I usually work with [departments] to [purpose].,Tôi thường phối hợp với... để...,"I usually work with QA, Engineering, Maintenance, and Warehouse to solve production issues."
+PAT-07,Delivery,"I control delivery by [action 1], [action 2], and [action 3].",Tôi kiểm soát giao hàng bằng cách...,"I control delivery by checking the production plan, tracking hourly output, and taking recovery actions."
+PAT-08,Delivery,"When output is behind target, I first check [cause].","Khi sản lượng thấp hơn target, tôi kiểm tra...","When output is behind target, I first check manpower, material, machine, process, and quality issues."
+PAT-09,Delivery,My goal is to close the production gap before it affects delivery.,Mục tiêu của tôi là kéo lại gap trước khi ảnh hưởng giao hàng.,My goal is to close the production gap before it affects delivery.
+PAT-10,Productivity,I improve productivity by identifying [problem] and taking [action].,Tôi cải thiện năng suất bằng cách xác định... và hành động...,I improve productivity by identifying bottlenecks and balancing manpower.
+PAT-11,Productivity,I focus on the real constraint of the line.,Tôi tập trung vào điểm nghẽn thật của chuyền.,I focus on the real constraint of the line.
+PAT-12,Productivity,"After taking action, I follow up the result.","Sau khi hành động, tôi theo dõi lại kết quả.","After taking action, I follow up the result."
+PAT-13,Ramp-up,"In ramp-up, my focus is not only output, but also process stability.","Trong ramp-up, tôi không chỉ tập trung vào sản lượng mà còn vào độ ổn định quy trình.","In ramp-up, my focus is not only output, but also process stability."
+PAT-14,Ramp-up,I lead ramp-up by preparing [manpower/training/process/material].,Tôi dẫn ramp-up bằng cách chuẩn bị...,"I lead ramp-up by preparing manpower, coordinating operator training, and stabilizing the process."
+PAT-15,Ramp-up,"As a result, the output reached [number].",Kết quả là sản lượng đạt...,"As a result, the output reached 80K pieces per week."
+PAT-16,Quality,"When a quality issue happens, I first contain the affected products.","Khi có lỗi chất lượng, đầu tiên tôi khoanh vùng sản phẩm bị ảnh hưởng.","When a quality issue happens, I first contain the affected products."
+PAT-17,Quality,Then I work with QA and Engineering to find the root cause.,Sau đó tôi làm việc với QA và Engineering để tìm nguyên nhân gốc.,Then I work with QA and Engineering to find the root cause.
+PAT-18,Quality,"For serious issues, we use 8D. For smaller issues, we use Fishbone analysis.","Với lỗi nghiêm trọng dùng 8D, lỗi nhỏ dùng xương cá.","For serious issues, we use 8D. For smaller issues, we use Fishbone analysis."
+PAT-19,People,I manage Team Leaders by setting clear targets and following up during the shift.,Tôi quản lý Team Leader bằng cách đặt mục tiêu rõ và theo dõi trong ca.,I manage Team Leaders by setting clear targets and following up during the shift.
+PAT-20,People,"I assign operators based on skill, priority, and line demand.","Tôi phân công công nhân dựa trên kỹ năng, độ ưu tiên và nhu cầu chuyền.","I assign operators based on skill, priority, and line demand."
+PAT-21,Data Tools,I use [tool] to monitor [KPI].,Tôi dùng... để theo dõi...,"I use MES, Excel, and Power BI to monitor output, productivity, manpower, and quality data."
+PAT-22,Data Tools,The purpose is to make problems visible.,Mục đích là làm vấn đề rõ ràng hơn.,The purpose is to make problems visible.
+PAT-23,Closing,That is how I control the issue during my shift.,Đó là cách tôi kiểm soát vấn đề trong ca.,That is how I control the issue during my shift.
+PAT-24,Closing,This helps us maintain stable production flow.,Điều này giúp duy trì dòng sản xuất ổn định.,This helps us maintain stable production flow.
+PAT-25,Closing,This experience helps me prepare for the Production Supervisor role.,Kinh nghiệm này giúp tôi chuẩn bị cho vai trò Production Supervisor.,This experience helps me prepare for the Production Supervisor role.
